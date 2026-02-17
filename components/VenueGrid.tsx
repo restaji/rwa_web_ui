@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpDown, ArrowDown, ArrowUp, Info } from "lucide-react";
+import { ArrowUpDown, ArrowDown, ArrowUp, Info, LayoutGrid, List } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -11,10 +12,11 @@ import {
 } from "@/components/ui/tooltip";
 import { VenueCard, VenueCardSkeleton } from "@/components/VenueCard";
 import { Venue } from "@/lib/mockVenues";
-import { calculateTotalCostBps, cn } from "@/lib/utils";
+import { calculateTotalCostBps, calculateUsdCost, formatBps, formatUsd, cn } from "@/lib/utils";
 
 type SortField = "totalCost" | "fees" | "spread" | "slippage";
 type SortDirection = "asc" | "desc";
+type ViewMode = "cards" | "table";
 
 interface VenueGridProps {
   venues: Venue[];
@@ -31,6 +33,7 @@ export function VenueGrid({
 }: VenueGridProps) {
   const [sortField, setSortField] = useState<SortField>("totalCost");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [viewMode, setViewMode] = useState<ViewMode>("cards");
 
   const sortedVenues = useMemo(() => {
     const sorted = [...venues].sort((a, b) => {
@@ -94,7 +97,7 @@ export function VenueGrid({
           <div className="h-10 w-72 rounded-full skeleton-shimmer" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <VenueCardSkeleton key={i} />
           ))}
         </div>
@@ -104,7 +107,7 @@ export function VenueGrid({
 
   return (
     <div className="space-y-5">
-      {/* Header with sorting */}
+      {/* Header with sorting and view toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <h3 className="text-lg font-semibold text-white">
@@ -127,53 +130,155 @@ export function VenueGrid({
           </TooltipProvider>
         </div>
 
-        {/* Sort pills */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[#666] uppercase tracking-wider mr-1">
-            Sort:
-          </span>
-          <div className="flex gap-1.5">
-            {[
-              { field: "totalCost" as const, label: "Cost" },
-              { field: "fees" as const, label: "Fees" },
-              { field: "spread" as const, label: "Spread" },
-              { field: "slippage" as const, label: "Slippage" },
-            ].map(({ field, label }) => (
-              <button
-                key={field}
-                onClick={() => handleSort(field)}
-                className={cn(
-                  "h-9 px-4 text-xs rounded-full flex items-center gap-1.5 transition-all duration-200 font-medium",
-                  sortField === field
-                    ? "bg-[#D8F213] text-[#0A0A0A]"
-                    : "bg-white/5 border border-white/10 text-[#999] hover:bg-white/10"
-                )}
-              >
-                {label}
-                <SortIcon field={field} isActive={sortField === field} />
-              </button>
-            ))}
+        <div className="flex items-center gap-4">
+          {/* View toggle */}
+          <div className="flex items-center bg-white/5 rounded-full p-1">
+            <button
+              onClick={() => setViewMode("cards")}
+              className={cn(
+                "p-2 rounded-full transition-all",
+                viewMode === "cards" ? "bg-white/10 text-white" : "text-[#666] hover:text-white"
+              )}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={cn(
+                "p-2 rounded-full transition-all",
+                viewMode === "table" ? "bg-white/10 text-white" : "text-[#666] hover:text-white"
+              )}
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Sort pills */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#666] uppercase tracking-wider mr-1">
+              Sort:
+            </span>
+            <div className="flex gap-1.5">
+              {[
+                { field: "totalCost" as const, label: "Cost" },
+                { field: "fees" as const, label: "Fees" },
+                { field: "spread" as const, label: "Spread" },
+                { field: "slippage" as const, label: "Slippage" },
+              ].map(({ field, label }) => (
+                <button
+                  key={field}
+                  onClick={() => handleSort(field)}
+                  className={cn(
+                    "h-9 px-4 text-xs rounded-full flex items-center gap-1.5 transition-all duration-200 font-medium",
+                    sortField === field
+                      ? "bg-[#D8F213] text-[#0A0A0A]"
+                      : "bg-white/5 border border-white/10 text-[#999] hover:bg-white/10"
+                  )}
+                >
+                  {label}
+                  <SortIcon field={field} isActive={sortField === field} />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Venue grid */}
-      <motion.div
-        layout
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-      >
-        <AnimatePresence mode="popLayout">
-          {sortedVenues.map((venue, index) => (
-            <VenueCard
-              key={venue.id}
-              venue={venue}
-              orderSize={orderSize}
-              isWinner={venue.id === winnerVenueId}
-              index={index}
-            />
-          ))}
-        </AnimatePresence>
-      </motion.div>
+      {/* Card View */}
+      {viewMode === "cards" && (
+        <motion.div
+          layout
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        >
+          <AnimatePresence mode="popLayout">
+            {sortedVenues.map((venue, index) => (
+              <VenueCard
+                key={venue.id}
+                venue={venue}
+                orderSize={orderSize}
+                isWinner={venue.id === winnerVenueId}
+                index={index}
+              />
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
+      {/* Table View */}
+      {viewMode === "table" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="card-nebular overflow-hidden"
+        >
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/5">
+                <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Platform</th>
+                <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Leverage</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Spread</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Slippage</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Fees</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Total Cost</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">USD</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedVenues.map((venue, index) => {
+                const totalCost = calculateTotalCostBps(venue);
+                const usdCost = calculateUsdCost(orderSize, totalCost);
+                const isWinner = venue.id === winnerVenueId;
+                const totalSlippage = venue.openingSlippageBps + venue.closingSlippageBps;
+
+                return (
+                  <motion.tr
+                    key={venue.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className={cn(
+                      "border-b border-white/5 last:border-0 transition-colors hover:bg-white/[0.02]",
+                      isWinner && "bg-[#D8F213]/[0.03] border-l-2 border-l-[#D8F213]"
+                    )}
+                  >
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+                          <Image
+                            src={venue.logo}
+                            alt={venue.name}
+                            width={32}
+                            height={32}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="font-medium text-white">
+                          {venue.name}
+                        </span>
+                        {isWinner && (
+                          <span className="text-[10px] bg-[#D8F213] text-[#0A0A0A] px-2 py-0.5 rounded-full font-semibold">
+                            BEST
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-[#888] tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{venue.maxLeverage}x</td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.openingSpreadBps)}</td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(totalSlippage)}</td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.feeBps)}</td>
+                    <td className="px-4 py-4 text-right">
+                      <span className={cn("tabular-nums font-medium", isWinner ? "text-[#D8F213]" : "text-white")} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
+                        {formatBps(totalCost)} bps
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatUsd(usdCost)}</td>
+                  </motion.tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </motion.div>
+      )}
     </div>
   );
 }
