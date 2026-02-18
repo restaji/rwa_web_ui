@@ -68,9 +68,8 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
 
         {/* Cost breakdown */}
         <div className="space-y-2.5">
-          <CostRow label="Opening Spread" value={venue.openingSpreadBps} />
-          <CostRow label="Opening Slippage" value={venue.openingSlippageBps} />
-          <CostRow label="Closing Slippage" value={venue.closingSlippageBps} />
+          <CostRow label="Opening Spread" value={venue.openingSlippageBps} />
+          <CostRow label="Closing Spread" value={venue.closingSlippageBps} />
           <CostRow label="Fees" value={venue.feeBps} />
 
           {/* Divider */}

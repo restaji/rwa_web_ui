@@ -14,7 +14,7 @@ import { VenueCard, VenueCardSkeleton } from "@/components/VenueCard";
 import { Venue } from "@/lib/mockVenues";
 import { calculateTotalCostBps, calculateUsdCost, formatBps, formatUsd, cn } from "@/lib/utils";
 
-type SortField = "totalCost" | "fees" | "spread" | "slippage";
+type SortField = "totalCost" | "fees" | "slippage";
 type SortDirection = "asc" | "desc";
 type ViewMode = "cards" | "table";
 
@@ -48,10 +48,6 @@ export function VenueGrid({
         case "fees":
           aValue = a.feeBps;
           bValue = b.feeBps;
-          break;
-        case "spread":
-          aValue = a.openingSpreadBps;
-          bValue = b.openingSpreadBps;
           break;
         case "slippage":
           aValue = a.openingSlippageBps + a.closingSlippageBps;
@@ -134,15 +130,6 @@ export function VenueGrid({
           {/* View toggle */}
           <div className="flex items-center bg-white/5 rounded-full p-1">
             <button
-              onClick={() => setViewMode("cards")}
-              className={cn(
-                "p-2 rounded-full transition-all",
-                viewMode === "cards" ? "bg-white/10 text-white" : "text-[#666] hover:text-white"
-              )}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
               onClick={() => setViewMode("table")}
               className={cn(
                 "p-2 rounded-full transition-all",
@@ -150,6 +137,15 @@ export function VenueGrid({
               )}
             >
               <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("cards")}
+              className={cn(
+                "p-2 rounded-full transition-all",
+                viewMode === "cards" ? "bg-white/10 text-white" : "text-[#666] hover:text-white"
+              )}
+            >
+              <LayoutGrid className="w-4 h-4" />
             </button>
           </div>
 
@@ -159,12 +155,11 @@ export function VenueGrid({
               Sort:
             </span>
             <div className="flex gap-1.5">
-              {[
-                { field: "totalCost" as const, label: "Cost" },
-                { field: "fees" as const, label: "Fees" },
-                { field: "spread" as const, label: "Spread" },
-                { field: "slippage" as const, label: "Slippage" },
-              ].map(({ field, label }) => (
+            {[
+              { field: "totalCost" as const, label: "Cost" },
+              { field: "fees" as const, label: "Fees" },
+              { field: "slippage" as const, label: "Slippage" },
+            ].map(({ field, label }) => (
                 <button
                   key={field}
                   onClick={() => handleSort(field)}
@@ -216,11 +211,11 @@ export function VenueGrid({
               <tr className="border-b border-white/5">
                 <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Platform</th>
                 <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Leverage</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Spread</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Slippage</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Opening Spread</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Closing Spread</th>
                 <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Fees</th>
                 <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Total Cost</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">USD</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">USD Cost</th>
               </tr>
             </thead>
             <tbody>
@@ -228,7 +223,6 @@ export function VenueGrid({
                 const totalCost = calculateTotalCostBps(venue);
                 const usdCost = calculateUsdCost(orderSize, totalCost);
                 const isWinner = venue.id === winnerVenueId;
-                const totalSlippage = venue.openingSlippageBps + venue.closingSlippageBps;
 
                 return (
                   <motion.tr
@@ -263,8 +257,8 @@ export function VenueGrid({
                       </div>
                     </td>
                     <td className="px-4 py-4 text-[#888] tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{venue.maxLeverage}x</td>
-                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.openingSpreadBps)}</td>
-                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(totalSlippage)}</td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.openingSlippageBps)}</td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.closingSlippageBps)}</td>
                     <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.feeBps)}</td>
                     <td className="px-4 py-4 text-right">
                       <span className={cn("tabular-nums font-medium", isWinner ? "text-[#D8F213]" : "text-white")} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
