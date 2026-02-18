@@ -8,7 +8,8 @@ import {
   BestExecutionCardSkeleton,
 } from "@/components/BestExecutionCard";
 import { VenueGrid } from "@/components/VenueGrid";
-import { getVenueDataForAsset, Venue, ASSETS } from "@/lib/mockVenues";
+import { Venue, ASSETS } from "@/lib/mockVenues";
+import { fetchComparison } from "@/lib/api";
 import { calculateTotalCostBps } from "@/lib/utils";
 
 export default function FeeAnalysisPage() {
@@ -18,6 +19,7 @@ export default function FeeAnalysisPage() {
   const [customSize, setCustomSize] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const winnerVenue = useMemo(() => {
     if (venues.length === 0) return null;
@@ -30,10 +32,17 @@ export default function FeeAnalysisPage() {
 
   const handleApply = useCallback(async () => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const data = getVenueDataForAsset(selectedAsset, direction, orderSize);
-    setVenues(data);
-    setIsLoading(false);
+    setError(null);
+    try {
+      const data = await fetchComparison(selectedAsset, orderSize, direction);
+      setVenues(data);
+    } catch (err) {
+      console.error("Failed to fetch comparison:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch data");
+      setVenues([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, [selectedAsset, direction, orderSize]);
 
   // Load initial data on mount
