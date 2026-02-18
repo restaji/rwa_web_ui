@@ -8,7 +8,7 @@
 import { Venue } from "./mockVenues";
 
 const API_BASE =
-    process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5001";
+    process.env.NEXT_PUBLIC_API_URL || "https://perpdexcomparisson.up.railway.app";
 
 const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     hyperliquid: { name: "Hyperliquid", logo: "/logos/hyperliquid.png" },
