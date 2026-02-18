@@ -214,13 +214,13 @@ export function VenueGrid({
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/5">
-                <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-2.5">Platform</th>
-                <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-2.5">Leverage</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-2.5">Spread</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-2.5">Slippage</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-2.5">Fees</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-2.5">Total Cost</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-2.5">USD</th>
+                <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Platform</th>
+                <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Leverage</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Spread</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Slippage</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Fees</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Total Cost</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">USD</th>
               </tr>
             </thead>
             <tbody>
@@ -241,14 +241,14 @@ export function VenueGrid({
                       isWinner && "bg-[#D8F213]/[0.03] border-l-2 border-l-[#D8F213]"
                     )}
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
                           <Image
                             src={venue.logo}
                             alt={venue.name}
-                            width={28}
-                            height={28}
+                            width={32}
+                            height={32}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -262,16 +262,16 @@ export function VenueGrid({
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[#888] tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{venue.maxLeverage}x</td>
-                    <td className="px-4 py-3 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.openingSpreadBps)}</td>
-                    <td className="px-4 py-3 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(totalSlippage)}</td>
-                    <td className="px-4 py-3 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.feeBps)}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-4 text-[#888] tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{venue.maxLeverage}x</td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.openingSpreadBps)}</td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(totalSlippage)}</td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.feeBps)}</td>
+                    <td className="px-4 py-4 text-right">
                       <span className={cn("tabular-nums font-medium", isWinner ? "text-[#D8F213]" : "text-white")} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
                         {formatBps(totalCost)} bps
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatUsd(usdCost)}</td>
+                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatUsd(usdCost)}</td>
                   </motion.tr>
                 );
               })}
