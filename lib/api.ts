@@ -24,6 +24,12 @@ const EXCHANGE_KEYS = Object.keys(EXCHANGE_META);
 /* ------------------------------------------------------------------ */
 /*  Raw API response shape (subset of the fields we care about)       */
 /* ------------------------------------------------------------------ */
+interface ExchangeResultSide {
+    filled?: boolean;
+    filled_usd?: number;
+    unfilled_usd?: number;
+}
+
 interface ExchangeResult {
     opening_slippage_bps?: number;
     closing_slippage_bps?: number;
@@ -32,12 +38,11 @@ interface ExchangeResult {
     total_cost_bps?: number;
     max_leverage?: number | null;
     filled?: boolean;
+    filled_usd?: number;
     executed?: boolean | string;
     timestamp?: number;
-    available_liquidity_usd?: number;
-    max_order_size_usd?: number;
-    max_buy_usd?: number;
-    max_sell_usd?: number;
+    buy?: ExchangeResultSide;
+    sell?: ExchangeResultSide;
 }
 
 interface CompareAPIResponse {
@@ -85,9 +90,9 @@ function toVenue(
             ? new Date(data.timestamp * 1000).toISOString()
             : new Date().toISOString(),
         hasInsufficientLiquidity,
-        availableLiquidityUsd: data.available_liquidity_usd ?? data.max_order_size_usd,
-        maxBuyUsd: data.max_buy_usd,
-        maxSellUsd: data.max_sell_usd,
+        availableLiquidityUsd: data.filled_usd,
+        maxBuyUsd: data.buy?.filled_usd,
+        maxSellUsd: data.sell?.filled_usd,
     };
 }
 
@@ -98,14 +103,15 @@ export async function fetchComparison(
     assetKey: string,
     orderSize: number,
     direction: "long" | "short",
-    orderType: string = "taker"
+    orderType: string = "taker",
+    signal?: AbortSignal
 ): Promise<Venue[]> {
     const url = new URL(`${API_BASE}/api/compare/${encodeURIComponent(assetKey)}`);
     url.searchParams.set("size", String(orderSize));
     url.searchParams.set("order_type", orderType);
     url.searchParams.set("direction", direction);
 
-    const res = await fetch(url.toString(), { cache: "no-store" });
+    const res = await fetch(url.toString(), { cache: "no-store", signal });
 
     if (!res.ok) {
         throw new Error(`API error ${res.status}: ${await res.text()}`);
@@ -126,7 +132,8 @@ export async function fetchComparison(
             const hasInsufficientLiquidity =
                 exData.filled === false ||
                 exData.executed === false ||
-                exData.executed === "false";
+                exData.executed === "false" ||
+                exData.executed === "PARTIAL";
 
             venues.push(toVenue(key, exData, hasInsufficientLiquidity));
         }

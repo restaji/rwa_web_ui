@@ -266,7 +266,13 @@ export function VenueGrid({
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <AlertTriangle className="w-3 h-3 text-amber-400" />
                               <span className="text-[10px] text-amber-400">
-                                Insufficient Liquidity • Max: {formatLiquidityCompact(venue.availableLiquidityUsd)}
+                                {venue.maxBuyUsd !== undefined && venue.maxSellUsd !== undefined ? (
+                                  <>Partial fill • Buy: {formatLiquidityCompact(venue.maxBuyUsd)} / Sell: {formatLiquidityCompact(venue.maxSellUsd)}</>
+                                ) : venue.availableLiquidityUsd !== undefined ? (
+                                  <>Insufficient Liquidity • Max: {formatLiquidityCompact(venue.availableLiquidityUsd)}</>
+                                ) : (
+                                  <>Insufficient Liquidity</>
+                                )}
                               </span>
                             </div>
                           )}

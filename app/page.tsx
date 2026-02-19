@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { FiltersPanel } from "@/components/FiltersPanel";
 import {
@@ -21,6 +21,8 @@ export default function FeeAnalysisPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const winnerVenue = useMemo(() => {
     const eligibleVenues = venues.filter((v) => !v.hasInsufficientLiquidity);
     if (eligibleVenues.length === 0) return null;
@@ -32,23 +34,46 @@ export default function FeeAnalysisPage() {
   }, [venues]);
 
   const handleApply = useCallback(async () => {
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchComparison(selectedAsset, orderSize, direction);
-      setVenues(data);
+      const data = await fetchComparison(selectedAsset, orderSize, direction, "taker", controller.signal);
+      if (!controller.signal.aborted) {
+        setVenues(data);
+        setIsLoading(false);
+      }
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
       console.error("Failed to fetch comparison:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch data");
-      setVenues([]);
-    } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setError(err instanceof Error ? err.message : "Failed to fetch data");
+        setVenues([]);
+        setIsLoading(false);
+      }
     }
   }, [selectedAsset, direction, orderSize]);
 
   // Load initial data on mount
   useEffect(() => {
     handleApply();
+  }, []);
+
+  // Cleanup abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   return (
