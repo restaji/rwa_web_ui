@@ -8,6 +8,10 @@ export interface Venue {
   closingSlippageBps: number;
   feeBps: number;
   updatedAt: string;
+  hasInsufficientLiquidity?: boolean;
+  availableLiquidityUsd?: number;
+  maxBuyUsd?: number;
+  maxSellUsd?: number;
 }
 
 export interface Asset {

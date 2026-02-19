@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Crown, TrendingDown } from "lucide-react";
+import { Crown, TrendingDown, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Venue } from "@/lib/mockVenues";
 import {
@@ -21,9 +21,23 @@ interface VenueCardProps {
   index: number;
 }
 
+function formatLiquidityCompact(amount: number | undefined): string {
+  if (amount === undefined || amount === null) return "N/A";
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
+  if (amount >= 1_000) return `$${Math.round(amount / 1_000)}K`;
+  return `$${Math.round(amount)}`;
+}
+
+function formatLiquidityFull(amount: number | undefined): string {
+  if (amount === undefined || amount === null) return "N/A";
+  return `$${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+}
+
 export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps) {
   const totalCostBps = calculateTotalCostBps(venue);
   const usdCost = calculateUsdCost(orderSize, totalCostBps);
+  const hasInsufficientLiquidity = venue.hasInsufficientLiquidity;
+  const orderSizeFormatted = formatLiquidityFull(orderSize);
 
   return (
     <motion.div
@@ -32,13 +46,13 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
       transition={{ duration: 0.3, delay: index * 0.03 }}
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
       className={cn(
-        "p-5",
-        isWinner ? "card-winner" : "card-nebular"
+        "p-5 relative",
+        isWinner && !hasInsufficientLiquidity ? "card-winner" : "card-nebular"
       )}
     >
       <div>
         {/* Winner badge */}
-        {isWinner && (
+        {isWinner && !hasInsufficientLiquidity && (
           <div className="absolute top-0 right-0">
             <Badge variant="winner">
               <Crown className="w-3 h-3 mr-1" />
@@ -59,7 +73,7 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
             />
           </div>
           <div className="flex-1">
-            <h4 className="font-semibold text-white text-lg">{venue.name}</h4>
+            <h4 className="font-semibold text-lg text-white">{venue.name}</h4>
             <Badge variant="muted" className="mt-1">
               {venue.maxLeverage}x
             </Badge>
@@ -68,8 +82,8 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
 
         {/* Cost breakdown */}
         <div className="space-y-2.5">
-          <CostRow label="Opening Spread" value={venue.openingSlippageBps} />
-          <CostRow label="Closing Spread" value={venue.closingSlippageBps} />
+          <CostRow label="Opening Slippage" value={venue.openingSlippageBps} />
+          <CostRow label="Closing Slippage" value={venue.closingSlippageBps} />
           <CostRow label="Fees" value={venue.feeBps} />
 
           {/* Divider */}
@@ -78,11 +92,17 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
           {/* Total */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <TrendingDown className={cn("w-4 h-4", isWinner ? "text-[#D8F213]" : "text-[#888]")} />
+              <TrendingDown className={cn(
+                "w-4 h-4",
+                isWinner && !hasInsufficientLiquidity ? "text-[#D8F213]" : "text-[#888]"
+              )} />
               <span className="text-sm font-medium text-white">Total Cost</span>
             </div>
             <div className="text-right">
-              <span className={cn("text-xl font-bold font-mono", isWinner ? "text-[#D8F213]" : "text-white")}>
+              <span className={cn(
+                "text-xl font-bold font-mono",
+                isWinner && !hasInsufficientLiquidity ? "text-[#D8F213]" : "text-white"
+              )}>
                 {formatBps(totalCostBps)}
               </span>
               <span className="text-sm text-[#888] ml-1">bps</span>
@@ -95,6 +115,21 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
             <span className="font-mono text-white">{formatUsd(usdCost)}</span>
           </div>
         </div>
+
+        {/* Partial Fill Warning */}
+        {hasInsufficientLiquidity && (
+          <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <p className="text-xs text-amber-400 text-center">
+              {venue.maxBuyUsd !== undefined && venue.maxSellUsd !== undefined ? (
+                <>Partial fill – Buy: {formatLiquidityFull(venue.maxBuyUsd)}/{orderSizeFormatted} – Sell: {formatLiquidityFull(venue.maxSellUsd)}/{orderSizeFormatted}</>
+              ) : venue.availableLiquidityUsd !== undefined ? (
+                <>Insufficient Liquidity – Max: {formatLiquidityFull(venue.availableLiquidityUsd)}/{orderSizeFormatted}</>
+              ) : (
+                <>Insufficient Liquidity</>
+              )}
+            </p>
+          </div>
+        )}
       </div>
     </motion.div>
   );

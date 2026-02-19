@@ -22,12 +22,13 @@ export default function FeeAnalysisPage() {
   const [error, setError] = useState<string | null>(null);
 
   const winnerVenue = useMemo(() => {
-    if (venues.length === 0) return null;
-    return venues.reduce((best, venue) => {
+    const eligibleVenues = venues.filter((v) => !v.hasInsufficientLiquidity);
+    if (eligibleVenues.length === 0) return null;
+    return eligibleVenues.reduce((best, venue) => {
       const bestCost = calculateTotalCostBps(best);
       const currentCost = calculateTotalCostBps(venue);
       return currentCost < bestCost ? venue : best;
-    }, venues[0]);
+    }, eligibleVenues[0]);
   }, [venues]);
 
   const handleApply = useCallback(async () => {
@@ -156,6 +157,60 @@ export default function FeeAnalysisPage() {
           />
         </section>
 
+        {/* Error State */}
+        {error && !isLoading && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-red-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-medium mb-1">
+                    Failed to load comparison data
+                  </h3>
+                  <p className="text-[#888] text-sm mb-4">{error}</p>
+                  <button
+                    onClick={handleApply}
+                    className="px-4 py-2 text-sm bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors inline-flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    Try again
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.section>
+        )}
+
         {/* Best Execution */}
         <section className="mb-8">
           {isLoading ? (
@@ -165,19 +220,21 @@ export default function FeeAnalysisPage() {
           ) : null}
         </section>
         {/* Results */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
-          {/* Grid */}
-          <VenueGrid
-            venues={venues}
-            orderSize={orderSize}
-            isLoading={isLoading}
-            winnerVenueId={winnerVenue?.id || null}
-          />
-        </motion.section>
+        {!error && (
+          <motion.section
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            {/* Grid */}
+            <VenueGrid
+              venues={venues}
+              orderSize={orderSize}
+              isLoading={isLoading}
+              winnerVenueId={winnerVenue?.id || null}
+            />
+          </motion.section>
+        )}
 
         {/* Footer */}
         <footer className="mt-16 pt-6 border-t border-white/5">

@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpDown, ArrowDown, ArrowUp, Info, LayoutGrid, List } from "lucide-react";
+import { ArrowUpDown, ArrowDown, ArrowUp, Info, LayoutGrid, List, AlertTriangle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +13,18 @@ import {
 import { VenueCard, VenueCardSkeleton } from "@/components/VenueCard";
 import { Venue } from "@/lib/mockVenues";
 import { calculateTotalCostBps, calculateUsdCost, formatBps, formatUsd, cn } from "@/lib/utils";
+
+function formatLiquidityFull(amount: number | undefined): string {
+  if (amount === undefined || amount === null) return "N/A";
+  return `$${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+}
+
+function formatLiquidity(amount: number | undefined): string {
+  if (amount === undefined || amount === null) return "N/A";
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
+  if (amount >= 1_000) return `$${Math.round(amount / 1_000)}K`;
+  return `$${Math.round(amount)}`;
+}
 
 type SortField = "totalCost" | "fees" | "slippage";
 type SortDirection = "asc" | "desc";
@@ -37,6 +49,10 @@ export function VenueGrid({
 
   const sortedVenues = useMemo(() => {
     const sorted = [...venues].sort((a, b) => {
+      // Always put insufficient liquidity venues at the bottom
+      if (a.hasInsufficientLiquidity && !b.hasInsufficientLiquidity) return 1;
+      if (!a.hasInsufficientLiquidity && b.hasInsufficientLiquidity) return -1;
+
       let aValue: number;
       let bValue: number;
 
@@ -223,6 +239,7 @@ export function VenueGrid({
                 const totalCost = calculateTotalCostBps(venue);
                 const usdCost = calculateUsdCost(orderSize, totalCost);
                 const isWinner = venue.id === winnerVenueId;
+                const hasInsufficientLiquidity = venue.hasInsufficientLiquidity;
 
                 return (
                   <motion.tr
@@ -232,12 +249,16 @@ export function VenueGrid({
                     transition={{ delay: index * 0.03 }}
                     className={cn(
                       "border-b border-white/5 last:border-0 transition-colors hover:bg-white/[0.02]",
-                      isWinner && "bg-[#D8F213]/[0.03] border-l-2 border-l-[#D8F213]"
+                      isWinner && !hasInsufficientLiquidity && "bg-[#D8F213]/[0.03] border-l-2 border-l-[#D8F213]",
+                      hasInsufficientLiquidity && "opacity-60"
                     )}
                   >
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg overflow-hidden flex-shrink-0",
+                          hasInsufficientLiquidity && "grayscale"
+                        )}>
                           <Image
                             src={venue.logo}
                             alt={venue.name}
@@ -246,26 +267,67 @@ export function VenueGrid({
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <span className="font-medium text-white">
-                          {venue.name}
-                        </span>
-                        {isWinner && (
+                        <div className="flex flex-col">
+                          <span className={cn(
+                            "font-medium",
+                            hasInsufficientLiquidity ? "text-[#888]" : "text-white"
+                          )}>
+                            {venue.name}
+                          </span>
+                          {hasInsufficientLiquidity && (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <AlertTriangle className="w-3 h-3 text-amber-400" />
+                              <span className="text-[10px] text-amber-400">
+                                Insufficient Liquidity • Max: {formatLiquidity(venue.availableLiquidityUsd)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {isWinner && !hasInsufficientLiquidity && (
                           <span className="text-[10px] bg-[#D8F213] text-[#0A0A0A] px-2 py-0.5 rounded-full font-semibold">
                             BEST
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-[#888] tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{venue.maxLeverage}x</td>
-                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.openingSlippageBps)}</td>
-                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.closingSlippageBps)}</td>
-                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatBps(venue.feeBps)}</td>
+                    <td className={cn(
+                      "px-4 py-4 tabular-nums",
+                      hasInsufficientLiquidity ? "text-[#555]" : "text-[#888]"
+                    )} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
+                      {venue.maxLeverage}x
+                    </td>
+                    <td className={cn(
+                      "px-4 py-4 text-right tabular-nums",
+                      hasInsufficientLiquidity ? "text-[#555]" : "text-white"
+                    )} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
+                      {formatBps(venue.openingSlippageBps)}
+                    </td>
+                    <td className={cn(
+                      "px-4 py-4 text-right tabular-nums",
+                      hasInsufficientLiquidity ? "text-[#555]" : "text-white"
+                    )} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
+                      {formatBps(venue.closingSlippageBps)}
+                    </td>
+                    <td className={cn(
+                      "px-4 py-4 text-right tabular-nums",
+                      hasInsufficientLiquidity ? "text-[#555]" : "text-white"
+                    )} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
+                      {formatBps(venue.feeBps)}
+                    </td>
                     <td className="px-4 py-4 text-right">
-                      <span className={cn("tabular-nums font-medium", isWinner ? "text-[#D8F213]" : "text-white")} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
+                      <span className={cn(
+                        "tabular-nums font-medium",
+                        hasInsufficientLiquidity ? "text-[#555]" : isWinner ? "text-[#D8F213]" : "text-white"
+                      )} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
                         {formatBps(totalCost)} bps
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-right text-white tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>{formatUsd(usdCost)}</td>
+                    <td className={cn(
+                      "px-4 py-4 text-right tabular-nums",
+                      hasInsufficientLiquidity ? "text-[#555]" : "text-white"
+                    )} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
+                      {formatUsd(usdCost)}
+                    </td>
                   </motion.tr>
                 );
               })}

@@ -34,6 +34,10 @@ interface ExchangeResult {
     filled?: boolean;
     executed?: boolean | string;
     timestamp?: number;
+    available_liquidity_usd?: number;
+    max_order_size_usd?: number;
+    max_buy_usd?: number;
+    max_sell_usd?: number;
 }
 
 interface CompareAPIResponse {
@@ -57,7 +61,8 @@ interface CompareAPIResponse {
 /* ------------------------------------------------------------------ */
 function toVenue(
     exchangeKey: string,
-    data: ExchangeResult
+    data: ExchangeResult,
+    hasInsufficientLiquidity: boolean = false
 ): Venue {
     const meta = EXCHANGE_META[exchangeKey] ?? {
         name: exchangeKey,
@@ -79,6 +84,10 @@ function toVenue(
         updatedAt: data.timestamp
             ? new Date(data.timestamp * 1000).toISOString()
             : new Date().toISOString(),
+        hasInsufficientLiquidity,
+        availableLiquidityUsd: data.available_liquidity_usd ?? data.max_order_size_usd,
+        maxBuyUsd: data.max_buy_usd,
+        maxSellUsd: data.max_sell_usd,
     };
 }
 
@@ -114,7 +123,12 @@ export async function fetchComparison(
             | undefined;
 
         if (exData && typeof exData === "object") {
-            venues.push(toVenue(key, exData));
+            const hasInsufficientLiquidity =
+                exData.filled === false ||
+                exData.executed === false ||
+                exData.executed === "false";
+
+            venues.push(toVenue(key, exData, hasInsufficientLiquidity));
         }
     }
 
