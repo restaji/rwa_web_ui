@@ -12,19 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { VenueCard, VenueCardSkeleton } from "@/components/VenueCard";
 import { Venue } from "@/lib/mockVenues";
-import { calculateTotalCostBps, calculateUsdCost, formatBps, formatUsd, cn } from "@/lib/utils";
-
-function formatLiquidityFull(amount: number | undefined): string {
-  if (amount === undefined || amount === null) return "N/A";
-  return `$${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-}
-
-function formatLiquidity(amount: number | undefined): string {
-  if (amount === undefined || amount === null) return "N/A";
-  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
-  if (amount >= 1_000) return `$${Math.round(amount / 1_000)}K`;
-  return `$${Math.round(amount)}`;
-}
+import { calculateTotalCostBps, calculateUsdCost, formatBps, formatUsd, formatLiquidityCompact, cn } from "@/lib/utils";
 
 type SortField = "totalCost" | "fees" | "slippage";
 type SortDirection = "asc" | "desc";
@@ -227,8 +215,8 @@ export function VenueGrid({
               <tr className="border-b border-white/5">
                 <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Platform</th>
                 <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Leverage</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Opening Spread</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Closing Spread</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Opening Slippage</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Closing Slippage</th>
                 <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Fees</th>
                 <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Total Cost</th>
                 <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">USD Cost</th>
@@ -278,7 +266,7 @@ export function VenueGrid({
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <AlertTriangle className="w-3 h-3 text-amber-400" />
                               <span className="text-[10px] text-amber-400">
-                                Insufficient Liquidity • Max: {formatLiquidity(venue.availableLiquidityUsd)}
+                                Insufficient Liquidity • Max: {formatLiquidityCompact(venue.availableLiquidityUsd)}
                               </span>
                             </div>
                           )}

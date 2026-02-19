@@ -11,6 +11,7 @@ import {
   formatUsd,
   calculateTotalCostBps,
   calculateUsdCost,
+  formatLiquidityFull,
   cn,
 } from "@/lib/utils";
 
@@ -19,18 +20,6 @@ interface VenueCardProps {
   orderSize: number;
   isWinner: boolean;
   index: number;
-}
-
-function formatLiquidityCompact(amount: number | undefined): string {
-  if (amount === undefined || amount === null) return "N/A";
-  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
-  if (amount >= 1_000) return `$${Math.round(amount / 1_000)}K`;
-  return `$${Math.round(amount)}`;
-}
-
-function formatLiquidityFull(amount: number | undefined): string {
-  if (amount === undefined || amount === null) return "N/A";
-  return `$${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
 export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps) {
