@@ -256,12 +256,17 @@ export function VenueGrid({
                           />
                         </div>
                         <div className="flex flex-col">
-                          <span className={cn(
-                            "font-medium",
-                            hasInsufficientLiquidity ? "text-[#888]" : "text-white"
-                          )}>
-                            {venue.name}
-                          </span>
+                          <div className="flex items-baseline gap-2">
+                            <span className={cn(
+                              "font-medium",
+                              hasInsufficientLiquidity ? "text-[#888]" : "text-white"
+                            )}>
+                              {venue.name}
+                            </span>
+                            {venue.symbol && (
+                              <span className="text-[11px] text-[#555] font-mono">{venue.symbol}</span>
+                            )}
+                          </div>
                           {hasInsufficientLiquidity && (
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <AlertTriangle className="w-3 h-3 text-amber-400" />

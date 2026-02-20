@@ -41,6 +41,7 @@ interface ExchangeResult {
     filled_usd?: number;
     executed?: boolean | string;
     timestamp?: number;
+    symbol?: string;
     buy?: ExchangeResultSide;
     sell?: ExchangeResultSide;
 }
@@ -89,6 +90,7 @@ function toVenue(
         updatedAt: data.timestamp
             ? new Date(data.timestamp * 1000).toISOString()
             : new Date().toISOString(),
+        symbol: data.symbol,
         hasInsufficientLiquidity,
         availableLiquidityUsd: data.filled_usd,
         maxBuyUsd: data.buy?.filled_usd,
