@@ -66,7 +66,7 @@ export default function DocsPage() {
               </div>
             </div>
             <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="Real World Perps" className="h-5 w-auto opacity-90" />
+              <img src="/logo.svg" alt="Real World Perps" className="h-5 w-auto opacity-90" />
               <span className="font-light text-white text-sm">Real World Perps</span>
             </Link>
           </div>

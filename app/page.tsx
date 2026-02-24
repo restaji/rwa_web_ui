@@ -157,7 +157,7 @@ export default function FeeAnalysisPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img 
-                  src="/logo.png" 
+                  src="/logo.svg" 
                   alt="Real World Perps" 
                   className="h-6 w-auto opacity-90"
                 />
