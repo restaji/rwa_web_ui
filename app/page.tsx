@@ -171,7 +171,7 @@ export default function FeeAnalysisPage() {
                   Docs
                 </a>
                 <a
-                  href="#"
+                  href="/api-docs"
                   className="text-sm text-[#888] hover:text-white transition-colors"
                 >
                   API
