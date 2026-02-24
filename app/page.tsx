@@ -165,7 +165,7 @@ export default function FeeAnalysisPage() {
               </div>
               <div className="flex items-center gap-6">
                 <a
-                  href="#"
+                  href="/docs"
                   className="text-sm text-[#888] hover:text-white transition-colors"
                 >
                   Docs
@@ -176,9 +176,6 @@ export default function FeeAnalysisPage() {
                 >
                   API
                 </a>
-                <button className="px-4 py-2 text-sm bg-white/5 hover:bg-white/10 text-white rounded-full transition-colors">
-                  Connect
-                </button>
               </div>
             </div>
           </nav>
