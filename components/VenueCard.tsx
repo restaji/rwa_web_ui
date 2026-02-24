@@ -3,8 +3,14 @@
 import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Crown, TrendingDown, AlertTriangle } from "lucide-react";
+import { Crown, TrendingDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Venue } from "@/lib/mockVenues";
 import {
   formatBps,
@@ -26,7 +32,6 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
   const totalCostBps = calculateTotalCostBps(venue);
   const usdCost = calculateUsdCost(orderSize, totalCostBps);
   const hasInsufficientLiquidity = venue.hasInsufficientLiquidity;
-  const orderSizeFormatted = formatLiquidityFull(orderSize);
 
   return (
     <motion.div
@@ -52,7 +57,7 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center w-10 h-10 rounded-2xl overflow-hidden">
+          <div className="flex items-center justify-center w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0">
             <Image
               src={venue.logo}
               alt={venue.name}
@@ -62,10 +67,33 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
             />
           </div>
           <div className="flex-1">
-            <h4 className="font-semibold text-lg text-white">{venue.name}</h4>
-            <Badge variant="muted" className="mt-1">
-              {venue.maxLeverage}x
-            </Badge>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="font-semibold text-lg text-white">{venue.name}</h4>
+              {hasInsufficientLiquidity && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full cursor-help">
+                        Partial fill
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#1A1A1A] border-white/10 rounded-xl max-w-[240px]">
+                      <p className="text-xs">
+                        Insufficient liquidity to fill the full {formatLiquidityFull(orderSize)} order size
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {venue.symbol && (
+                <span className="text-[11px] text-[#555] font-mono">{venue.symbol}</span>
+              )}
+              <Badge variant="muted">
+                {venue.maxLeverage}x
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -105,20 +133,6 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
           </div>
         </div>
 
-        {/* Partial Fill Warning */}
-        {hasInsufficientLiquidity && (
-          <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-            <p className="text-xs text-amber-400 text-center">
-              {venue.maxBuyUsd !== undefined && venue.maxSellUsd !== undefined ? (
-                <>Partial fill – Buy: {formatLiquidityFull(venue.maxBuyUsd)}/{orderSizeFormatted} – Sell: {formatLiquidityFull(venue.maxSellUsd)}/{orderSizeFormatted}</>
-              ) : venue.availableLiquidityUsd !== undefined ? (
-                <>Insufficient Liquidity – Max: {formatLiquidityFull(venue.availableLiquidityUsd)}/{orderSizeFormatted}</>
-              ) : (
-                <>Insufficient Liquidity</>
-              )}
-            </p>
-          </div>
-        )}
       </div>
     </motion.div>
   );

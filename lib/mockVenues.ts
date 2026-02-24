@@ -8,6 +8,7 @@ export interface Venue {
   closingSlippageBps: number;
   feeBps: number;
   updatedAt: string;
+  symbol?: string;
   hasInsufficientLiquidity?: boolean;
   availableLiquidityUsd?: number;
   maxBuyUsd?: number;

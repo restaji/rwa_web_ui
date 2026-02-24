@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from "react";
 import { motion } from "framer-motion";
+import { RefreshCw } from "lucide-react";
 import { FiltersPanel } from "@/components/FiltersPanel";
 import {
   BestExecutionCard,
@@ -10,7 +17,9 @@ import {
 import { VenueGrid } from "@/components/VenueGrid";
 import { Venue, ASSETS } from "@/lib/mockVenues";
 import { fetchComparison } from "@/lib/api";
-import { calculateTotalCostBps } from "@/lib/utils";
+import { calculateTotalCostBps, cn } from "@/lib/utils";
+
+const AUTO_REFRESH_INTERVAL = 10000; // 10 seconds
 
 export default function FeeAnalysisPage() {
   const [selectedAsset, setSelectedAsset] = useState(ASSETS[0].id);
@@ -20,6 +29,8 @@ export default function FeeAnalysisPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -33,39 +44,64 @@ export default function FeeAnalysisPage() {
     }, eligibleVenues[0]);
   }, [venues]);
 
-  const handleApply = useCallback(async () => {
-    // Cancel any in-flight request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
+  const handleApply = useCallback(
+    async (isManualRefresh = false) => {
+      // Cancel any in-flight request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await fetchComparison(selectedAsset, orderSize, direction, "taker", controller.signal);
-      if (!controller.signal.aborted) {
-        setVenues(data);
-        setIsLoading(false);
+      if (isManualRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
       }
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") {
-        return;
+      setError(null);
+      try {
+        const data = await fetchComparison(
+          selectedAsset,
+          orderSize,
+          direction,
+          "taker",
+          controller.signal,
+        );
+        if (!controller.signal.aborted) {
+          setVenues(data);
+          setLastUpdated(new Date());
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
+        console.error("Failed to fetch comparison:", err);
+        if (!controller.signal.aborted) {
+          setError(err instanceof Error ? err.message : "Failed to fetch data");
+          setVenues([]);
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
       }
-      console.error("Failed to fetch comparison:", err);
-      if (!controller.signal.aborted) {
-        setError(err instanceof Error ? err.message : "Failed to fetch data");
-        setVenues([]);
-        setIsLoading(false);
-      }
-    }
-  }, [selectedAsset, direction, orderSize]);
+    },
+    [selectedAsset, direction, orderSize],
+  );
 
   // Load initial data on mount
   useEffect(() => {
     handleApply();
   }, []);
+
+  // Auto-refresh every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleApply(true);
+    }, AUTO_REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [handleApply]);
 
   // Cleanup abort controller on unmount
   useEffect(() => {
@@ -111,7 +147,7 @@ export default function FeeAnalysisPage() {
             style={{
               backgroundImage: "url(/top.jpg)",
               backgroundSize: "cover",
-              backgroundPosition: "center top",
+              backgroundPosition: "center center",
               opacity: 0.15,
             }}
           />
@@ -120,10 +156,12 @@ export default function FeeAnalysisPage() {
           <nav className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">FX</span>
-                </div>
-                <span className="font-semibold text-white">FeeX</span>
+                <img 
+                  src="/logo.png" 
+                  alt="Real World Perps" 
+                  className="h-6 w-auto opacity-90"
+                />
+                <span className="font-light text-white tracking-wide text-lg">Real World Perps</span>
               </div>
               <div className="flex items-center gap-6">
                 <a
@@ -177,7 +215,7 @@ export default function FeeAnalysisPage() {
             setOrderSize={setOrderSize}
             customSize={customSize}
             setCustomSize={setCustomSize}
-            onApply={handleApply}
+            onApply={() => handleApply()}
             isLoading={isLoading}
           />
         </section>
@@ -212,7 +250,7 @@ export default function FeeAnalysisPage() {
                   </h3>
                   <p className="text-[#888] text-sm mb-4">{error}</p>
                   <button
-                    onClick={handleApply}
+                    onClick={() => handleApply()}
                     className="px-4 py-2 text-sm bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors inline-flex items-center gap-2"
                   >
                     <svg
@@ -238,11 +276,38 @@ export default function FeeAnalysisPage() {
 
         {/* Best Execution */}
         <section className="mb-8">
-          {isLoading ? (
-            <BestExecutionCardSkeleton />
-          ) : winnerVenue ? (
-            <BestExecutionCard venue={winnerVenue} orderSize={orderSize} />
-          ) : null}
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              {isLoading ? (
+                <BestExecutionCardSkeleton />
+              ) : winnerVenue ? (
+                <BestExecutionCard venue={winnerVenue} orderSize={orderSize} />
+              ) : null}
+            </div>
+            <div className="flex items-center gap-3">
+              {lastUpdated && !isLoading && (
+                <span className="text-xs text-[#555]">
+                  Updated {lastUpdated.toLocaleTimeString()}
+                </span>
+              )}
+              <button
+                onClick={() => handleApply(true)}
+                disabled={isLoading || isRefreshing}
+                className={cn(
+                  "p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50",
+                  isRefreshing && "animate-pulse",
+                )}
+                title="Refresh data"
+              >
+                <RefreshCw
+                  className={cn(
+                    "w-4 h-4 text-[#888]",
+                    isRefreshing && "animate-spin",
+                  )}
+                />
+              </button>
+            </div>
+          </div>
         </section>
         {/* Results */}
         {!error && (
@@ -264,8 +329,8 @@ export default function FeeAnalysisPage() {
         {/* Footer */}
         <footer className="mt-16 pt-6 border-t border-white/5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-[#555]">
-            <p>Fee Analysis • Execution cost comparison</p>
-            <p>Data is indicative</p>
+            <p>Real World Perps • RWA execution cost comparison</p>
+            <p>Data is indicative • realworldperps.xyz</p>
           </div>
         </footer>
       </div>

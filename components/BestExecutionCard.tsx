@@ -4,16 +4,15 @@ import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Venue } from "@/lib/mockVenues";
-import { formatUsd, calculateTotalCostBps, calculateUsdCost } from "@/lib/utils";
+import { formatBps, calculateTotalCostBps } from "@/lib/utils";
 
 interface BestExecutionCardProps {
   venue: Venue;
   orderSize: number;
 }
 
-export function BestExecutionCard({ venue, orderSize }: BestExecutionCardProps) {
+export function BestExecutionCard({ venue }: BestExecutionCardProps) {
   const totalCostBps = calculateTotalCostBps(venue);
-  const usdCost = calculateUsdCost(orderSize, totalCostBps);
 
   return (
     <motion.div
@@ -35,7 +34,7 @@ export function BestExecutionCard({ venue, orderSize }: BestExecutionCardProps) 
         </span>
         <span className="font-semibold">{venue.name}</span>
         <span>at</span>
-        <span className="text-[#D8F213] font-semibold">{formatUsd(usdCost)}</span>
+        <span className="text-[#D8F213] font-semibold">{formatBps(totalCostBps)} bps</span>
       </p>
     </motion.div>
   );

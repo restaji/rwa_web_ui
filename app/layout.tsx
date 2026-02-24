@@ -8,8 +8,25 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Fee Analysis | Execution Cost Comparison",
-  description: "Compare RWA execution costs across perpetual DEXs",
+  title: "Real World Perps | RWA Execution Cost Comparison",
+  description: "Compare execution costs for real-world assets across perpetual DEXs. Find the best venue for your RWA trades.",
+  keywords: ["RWA", "perpetual DEX", "trading", "execution costs", "real world assets", "DeFi"],
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    title: "Real World Perps",
+    description: "Compare execution costs for real-world assets across perpetual DEXs",
+    url: "https://realworldperps.xyz",
+    siteName: "Real World Perps",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Real World Perps",
+    description: "Compare execution costs for real-world assets across perpetual DEXs",
+  },
 };
 
 export default function RootLayout({
