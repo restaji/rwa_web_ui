@@ -159,7 +159,7 @@ export default function FeeAnalysisPage() {
                 <img 
                   src="/logo.svg" 
                   alt="Real World Perps" 
-                  className="h-6 w-auto opacity-90"
+                  className="h-9 w-auto"
                 />
                 <span className="font-light text-white tracking-wide text-lg">Real World Perps</span>
               </div>

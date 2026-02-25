@@ -73,7 +73,7 @@ export default function APIDocsPage() {
               </div>
             </div>
             <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.svg" alt="Real World Perps" className="h-5 w-auto opacity-90" />
+              <img src="/logo.svg" alt="Real World Perps" className="h-8 w-auto" />
               <span className="font-light text-white text-sm">Real World Perps</span>
             </Link>
           </div>
