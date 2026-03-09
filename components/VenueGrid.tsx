@@ -76,7 +76,7 @@ export function VenueGrid({
     });
 
     return sorted;
-  }, [venues, sortField, sortDirection]);
+  }, [venues, sortField, sortDirection, direction]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
