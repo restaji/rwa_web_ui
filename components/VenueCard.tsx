@@ -15,9 +15,11 @@ import { Venue } from "@/lib/mockVenues";
 import {
   formatBps,
   formatUsd,
-  calculateTotalCostBps,
   calculateUsdCost,
   formatLiquidityFull,
+  formatHoldingFeePct,
+  getHoldingFeeDisplayPct,
+  calculateAdjustedTotalCostBps,
   cn,
 } from "@/lib/utils";
 
@@ -26,10 +28,12 @@ interface VenueCardProps {
   orderSize: number;
   isWinner: boolean;
   index: number;
+  direction: "long" | "short";
 }
 
-export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps) {
-  const totalCostBps = calculateTotalCostBps(venue);
+export function VenueCard({ venue, orderSize, isWinner, index, direction }: VenueCardProps) {
+  const holdingFeePct = getHoldingFeeDisplayPct(venue, direction);
+  const totalCostBps = calculateAdjustedTotalCostBps(venue, direction);
   const usdCost = calculateUsdCost(orderSize, totalCostBps);
   const hasInsufficientLiquidity = venue.hasInsufficientLiquidity;
 
@@ -99,9 +103,10 @@ export function VenueCard({ venue, orderSize, isWinner, index }: VenueCardProps)
 
         {/* Cost breakdown */}
         <div className="space-y-2.5">
-          <CostRow label="Opening Slippage" value={venue.openingSlippageBps} />
-          <CostRow label="Closing Slippage" value={venue.closingSlippageBps} />
+          <CostRow label="Opening Spread" value={venue.openingSlippageBps} />
+          <CostRow label="Closing Spread" value={venue.closingSlippageBps} />
           <CostRow label="Fees" value={venue.feeBps} />
+          <HoldingFeeRow pct={holdingFeePct} />
 
           {/* Divider */}
           <div className="border-t border-white/5 my-3" />
@@ -143,6 +148,18 @@ function CostRow({ label, value }: { label: string; value: number }) {
     <div className="flex items-center justify-between text-sm">
       <span className="text-[#888]">{label}</span>
       <span className="font-mono text-white">{formatBps(value)} bps</span>
+    </div>
+  );
+}
+
+function HoldingFeeRow({ pct }: { pct: number | undefined }) {
+  const isNegative = pct !== undefined && pct < 0;
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-[#888]">Holding Fee (24H)</span>
+      <span className={cn("font-mono", isNegative ? "text-emerald-400" : "text-white")}>
+        {formatHoldingFeePct(pct)}
+      </span>
     </div>
   );
 }

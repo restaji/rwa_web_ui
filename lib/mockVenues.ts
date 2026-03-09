@@ -13,6 +13,14 @@ export interface Venue {
   availableLiquidityUsd?: number;
   maxBuyUsd?: number;
   maxSellUsd?: number;
+  // Holding / funding fee fields (% of notional per period)
+  fundingFee1hPct?: number;
+  fundingFee24hPct?: number;
+  // Directional holding fees (Avantis, Ostium)
+  fundingFee1hLongPct?: number;
+  fundingFee1hShortPct?: number;
+  fundingFee24hLongPct?: number;
+  fundingFee24hShortPct?: number;
 }
 
 export interface Asset {
@@ -21,11 +29,12 @@ export interface Asset {
   name: string;
 }
 
-// Assets matching the Python backend (rwa_fee_comparisson.py ASSETS dict)
+// Assets matching the Python backend ASSETS dict
 export const ASSETS: Asset[] = [
   // Commodities
   { id: "XAU", symbol: "XAU/USD", name: "Gold" },
   { id: "XAG", symbol: "XAG/USD", name: "Silver" },
+  // { id: "WTI", symbol: "WTI/USD", name: "Crude Oil" },
   // Forex
   { id: "EURUSD", symbol: "EUR/USD", name: "Euro" },
   { id: "GBPUSD", symbol: "GBP/USD", name: "British Pound" },

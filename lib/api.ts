@@ -17,13 +17,13 @@ const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     avantis: { name: "Avantis", logo: "/logos/avantis.png" },
     ostium: { name: "Ostium", logo: "/logos/ostium.webp" },
     extended: { name: "Extended", logo: "/logos/extended.png" },
+    edgex: { name: "EdgeX", logo: "/logos/edgex.png" },
+    grvt: { name: "GRVT", logo: "/logos/grvt.png" },
 };
 
 const EXCHANGE_KEYS = Object.keys(EXCHANGE_META);
 
-/* ------------------------------------------------------------------ */
-/*  Raw API response shape (subset of the fields we care about)       */
-/* ------------------------------------------------------------------ */
+
 interface ExchangeResultSide {
     filled?: boolean;
     filled_usd?: number;
@@ -44,6 +44,14 @@ interface ExchangeResult {
     symbol?: string;
     buy?: ExchangeResultSide;
     sell?: ExchangeResultSide;
+    // Symmetric holding fees (Hyperliquid, Lighter, Aster, Extended)
+    holding_fee_1h_pct?: number;
+    holding_fee_24h_pct?: number;
+    // Directional holding fees (Avantis, Ostium)
+    holding_fee_1h_long_pct?: number;
+    holding_fee_1h_short_pct?: number;
+    holding_fee_24h_long_pct?: number;
+    holding_fee_24h_short_pct?: number;
 }
 
 interface CompareAPIResponse {
@@ -60,6 +68,8 @@ interface CompareAPIResponse {
     avantis?: ExchangeResult | null;
     ostium?: ExchangeResult | null;
     extended?: ExchangeResult | null;
+    edgex?: ExchangeResult | null;
+    grvt?: ExchangeResult | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -95,6 +105,12 @@ function toVenue(
         availableLiquidityUsd: data.filled_usd,
         maxBuyUsd: data.buy?.filled_usd,
         maxSellUsd: data.sell?.filled_usd,
+        fundingFee1hPct: data.holding_fee_1h_pct,
+        fundingFee24hPct: data.holding_fee_24h_pct,
+        fundingFee1hLongPct: data.holding_fee_1h_long_pct,
+        fundingFee1hShortPct: data.holding_fee_1h_short_pct,
+        fundingFee24hLongPct: data.holding_fee_24h_long_pct,
+        fundingFee24hShortPct: data.holding_fee_24h_short_pct,
     };
 }
 
