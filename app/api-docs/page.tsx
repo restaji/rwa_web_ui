@@ -137,16 +137,10 @@ export default function APIDocsPage() {
               </p>
               <CodeBlock 
                 id="base-url-code"
-                code="https://api.realworldperps.xyz"
+                code="https://rwa-api.avantisfi.com"
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
               />
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mt-4">
-                <p className="text-amber-400 text-sm">
-                  <strong>Note:</strong> The base URL may change before final deployment. 
-                  Check back for updates or subscribe to our changelog.
-                </p>
-              </div>
             </Section>
 
             {/* Authentication */}
@@ -159,7 +153,7 @@ export default function APIDocsPage() {
                 id="auth-code"
                 language="bash"
                 code={`# No authentication required
-curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"`}
+curl "https://rwa-api.avantisfi.com/api/compare/XAU?size=100000&direction=long"`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
               />
@@ -220,7 +214,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
               <CodeBlock 
                 id="example-request"
                 language="bash"
-                code={`curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long&order_type=taker"`}
+                code={`curl "https://rwa-api.avantisfi.com/api/compare/XAU?size=100000&direction=long&order_type=taker"`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
               />
@@ -381,7 +375,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
                 id="js-example"
                 language="javascript"
                 code={`const response = await fetch(
-  'https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long'
+  'https://rwa-api.avantisfi.com/api/compare/XAU?size=100000&direction=long'
 );
 const data = await response.json();
 
@@ -402,7 +396,7 @@ console.log(\`USD cost: $\${usdCost.toFixed(2)}\`);`}
                 code={`import requests
 
 response = requests.get(
-    'https://api.realworldperps.xyz/api/compare/XAU',
+    'https://rwa-api.avantisfi.com/api/compare/XAU',
     params={
         'size': 100000,
         'direction': 'long',
