@@ -4,15 +4,17 @@ import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Venue } from "@/lib/mockVenues";
-import { formatBps, calculateTotalCostBps } from "@/lib/utils";
+import { formatBps, formatUsd, calculateAdjustedTotalCostBps, calculateUsdCost } from "@/lib/utils";
 
 interface BestExecutionCardProps {
   venue: Venue;
   orderSize: number;
+  direction: "long" | "short";
 }
 
-export function BestExecutionCard({ venue }: BestExecutionCardProps) {
-  const totalCostBps = calculateTotalCostBps(venue);
+export function BestExecutionCard({ venue, orderSize, direction }: BestExecutionCardProps) {
+  const totalCostBps = calculateAdjustedTotalCostBps(venue, direction);
+  const usdCost = calculateUsdCost(orderSize, totalCostBps);
 
   return (
     <motion.div
@@ -35,6 +37,7 @@ export function BestExecutionCard({ venue }: BestExecutionCardProps) {
         <span className="font-semibold">{venue.name}</span>
         <span>at</span>
         <span className="text-[#D8F213] font-semibold">{formatBps(totalCostBps)} bps</span>
+        <span className="text-[#666]">({formatUsd(usdCost)})</span>
       </p>
     </motion.div>
   );
@@ -47,6 +50,7 @@ export function BestExecutionCardSkeleton() {
         <div className="h-5 w-64 rounded skeleton-shimmer" />
         <div className="w-5 h-5 rounded-md skeleton-shimmer" />
         <div className="h-5 w-20 rounded skeleton-shimmer" />
+        <div className="h-5 w-16 rounded skeleton-shimmer" />
         <div className="h-5 w-16 rounded skeleton-shimmer" />
       </div>
     </div>

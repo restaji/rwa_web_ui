@@ -66,3 +66,76 @@ export function formatLiquidityFull(amount: number | undefined): string {
   if (amount === undefined || amount === null) return "N/A";
   return `$${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
+
+/**
+ * Format a holding fee percentage.
+ * Positive = position pays this rate (cost), Negative = position receives it (benefit).
+ */
+export function formatHoldingFeePct(pct: number | undefined): string {
+  if (pct === undefined || pct === null) return "—";
+  return `${pct.toFixed(4)}%`;
+}
+
+/**
+ * Returns the holding fee as a cost % for the selected direction.
+ *
+ * - For directional exchanges (Avantis, Ostium): use the direction-specific rate
+ *   directly (positive = that side pays, negative = that side receives).
+ * - For symmetric exchanges (HL, Lighter, Aster, Extended): the raw rate is
+ *   expressed from the long perspective (positive = longs pay, shorts receive),
+ *   so it is negated for the short side.
+ *
+ * Positive result → adds to total cost. Negative result → reduces total cost.
+ */
+export function getHoldingFeeDisplayPct(
+  venue: {
+    fundingFee24hPct?: number;
+    fundingFee24hLongPct?: number;
+    fundingFee24hShortPct?: number;
+  },
+  direction: "long" | "short"
+): number | undefined {
+  if (direction === "long") {
+    if (venue.fundingFee24hLongPct !== undefined) return venue.fundingFee24hLongPct;
+    return venue.fundingFee24hPct;
+  } else {
+    if (venue.fundingFee24hShortPct !== undefined) return venue.fundingFee24hShortPct;
+    if (venue.fundingFee24hPct !== undefined) return -venue.fundingFee24hPct;
+    return undefined;
+  }
+}
+
+/**
+ * Returns the holding fee adjustment in bps (1% = 100 bps).
+ * Positive = adds to total cost, Negative = reduces total cost.
+ */
+export function getHoldingFeeCostBps(
+  venue: {
+    fundingFee24hPct?: number;
+    fundingFee24hLongPct?: number;
+    fundingFee24hShortPct?: number;
+  },
+  direction: "long" | "short"
+): number {
+  const pct = getHoldingFeeDisplayPct(venue, direction);
+  if (pct === undefined) return 0;
+  return pct * 100;
+}
+
+/**
+ * Total cost including the 24H holding fee adjustment for the given direction.
+ */
+export function calculateAdjustedTotalCostBps(
+  venue: {
+    openingSpreadBps: number;
+    openingSlippageBps: number;
+    closingSlippageBps: number;
+    feeBps: number;
+    fundingFee24hPct?: number;
+    fundingFee24hLongPct?: number;
+    fundingFee24hShortPct?: number;
+  },
+  direction: "long" | "short"
+): number {
+  return calculateTotalCostBps(venue) + getHoldingFeeCostBps(venue, direction);
+}

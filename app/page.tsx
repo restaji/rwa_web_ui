@@ -17,7 +17,7 @@ import {
 import { VenueGrid } from "@/components/VenueGrid";
 import { Venue, ASSETS } from "@/lib/mockVenues";
 import { fetchComparison } from "@/lib/api";
-import { calculateTotalCostBps, cn } from "@/lib/utils";
+import { calculateAdjustedTotalCostBps, cn } from "@/lib/utils";
 
 const AUTO_REFRESH_INTERVAL = 10000; // 10 seconds
 
@@ -38,11 +38,11 @@ export default function FeeAnalysisPage() {
     const eligibleVenues = venues.filter((v) => !v.hasInsufficientLiquidity);
     if (eligibleVenues.length === 0) return null;
     return eligibleVenues.reduce((best, venue) => {
-      const bestCost = calculateTotalCostBps(best);
-      const currentCost = calculateTotalCostBps(venue);
+      const bestCost = calculateAdjustedTotalCostBps(best, direction);
+      const currentCost = calculateAdjustedTotalCostBps(venue, direction);
       return currentCost < bestCost ? venue : best;
     }, eligibleVenues[0]);
-  }, [venues]);
+  }, [venues, direction]);
 
   const handleApply = useCallback(
     async (isManualRefresh = false) => {
@@ -319,6 +319,7 @@ export default function FeeAnalysisPage() {
               orderSize={orderSize}
               isLoading={isLoading}
               winnerVenueId={winnerVenue?.id || null}
+              direction={direction}
             />
           </motion.section>
         )}

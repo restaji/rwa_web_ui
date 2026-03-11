@@ -12,7 +12,16 @@ import {
 } from "@/components/ui/tooltip";
 import { VenueCard, VenueCardSkeleton } from "@/components/VenueCard";
 import { Venue } from "@/lib/mockVenues";
-import { calculateTotalCostBps, calculateUsdCost, formatBps, formatUsd, formatLiquidityFull, cn } from "@/lib/utils";
+import {
+  calculateUsdCost,
+  formatBps,
+  formatUsd,
+  formatLiquidityFull,
+  formatHoldingFeePct,
+  getHoldingFeeDisplayPct,
+  calculateAdjustedTotalCostBps,
+  cn,
+} from "@/lib/utils";
 
 type SortField = "totalCost" | "fees" | "slippage";
 type SortDirection = "asc" | "desc";
@@ -23,6 +32,7 @@ interface VenueGridProps {
   orderSize: number;
   isLoading: boolean;
   winnerVenueId: string | null;
+  direction: "long" | "short";
 }
 
 export function VenueGrid({
@@ -30,6 +40,7 @@ export function VenueGrid({
   orderSize,
   isLoading,
   winnerVenueId,
+  direction,
 }: VenueGridProps) {
   const [sortField, setSortField] = useState<SortField>("totalCost");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -46,8 +57,8 @@ export function VenueGrid({
 
       switch (sortField) {
         case "totalCost":
-          aValue = calculateTotalCostBps(a);
-          bValue = calculateTotalCostBps(b);
+          aValue = calculateAdjustedTotalCostBps(a, direction);
+          bValue = calculateAdjustedTotalCostBps(b, direction);
           break;
         case "fees":
           aValue = a.feeBps;
@@ -65,7 +76,7 @@ export function VenueGrid({
     });
 
     return sorted;
-  }, [venues, sortField, sortDirection]);
+  }, [venues, sortField, sortDirection, direction]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -115,6 +126,7 @@ export function VenueGrid({
                   <th className="text-right px-4 py-3"><div className="h-4 w-20 rounded skeleton-shimmer ml-auto" /></th>
                   <th className="text-right px-4 py-3"><div className="h-4 w-20 rounded skeleton-shimmer ml-auto" /></th>
                   <th className="text-right px-4 py-3"><div className="h-4 w-12 rounded skeleton-shimmer ml-auto" /></th>
+                  <th className="text-right px-4 py-3"><div className="h-4 w-20 rounded skeleton-shimmer ml-auto" /></th>
                   <th className="text-right px-4 py-3"><div className="h-4 w-16 rounded skeleton-shimmer ml-auto" /></th>
                   <th className="text-right px-4 py-3"><div className="h-4 w-16 rounded skeleton-shimmer ml-auto" /></th>
                 </tr>
@@ -135,6 +147,7 @@ export function VenueGrid({
                     <td className="px-4 py-4"><div className="h-4 w-14 rounded skeleton-shimmer ml-auto" /></td>
                     <td className="px-4 py-4"><div className="h-4 w-14 rounded skeleton-shimmer ml-auto" /></td>
                     <td className="px-4 py-4"><div className="h-4 w-12 rounded skeleton-shimmer ml-auto" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-18 rounded skeleton-shimmer ml-auto" /></td>
                     <td className="px-4 py-4"><div className="h-4 w-16 rounded skeleton-shimmer ml-auto" /></td>
                     <td className="px-4 py-4"><div className="h-4 w-14 rounded skeleton-shimmer ml-auto" /></td>
                   </tr>
@@ -245,6 +258,7 @@ export function VenueGrid({
                 orderSize={orderSize}
                 isWinner={venue.id === winnerVenueId}
                 index={index}
+                direction={direction}
               />
             ))}
           </AnimatePresence>
@@ -264,16 +278,18 @@ export function VenueGrid({
               <tr className="border-b border-white/5">
                 <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Platform</th>
                 <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Max Leverage</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Opening Slippage</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Closing Slippage</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Opening Spread</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Closing Spread</th>
                 <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Fees</th>
+                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Holding Fee (24H)</th>
                 <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Total Cost</th>
                 <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">USD Cost</th>
               </tr>
             </thead>
             <tbody>
               {sortedVenues.map((venue, index) => {
-                const totalCost = calculateTotalCostBps(venue);
+                const holdingFeePct = getHoldingFeeDisplayPct(venue, direction);
+                const totalCost = calculateAdjustedTotalCostBps(venue, direction);
                 const usdCost = calculateUsdCost(orderSize, totalCost);
                 const isWinner = venue.id === winnerVenueId;
                 const hasInsufficientLiquidity = venue.hasInsufficientLiquidity;
@@ -342,6 +358,13 @@ export function VenueGrid({
                     </td>
                     <td className="px-4 py-4 text-right tabular-nums text-white" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
                       {formatBps(venue.feeBps)} bps
+                    </td>
+                    <td className="px-4 py-4 text-right tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
+                      <span className={cn(
+                        holdingFeePct !== undefined && holdingFeePct < 0 ? "text-emerald-400" : "text-white"
+                      )}>
+                        {formatHoldingFeePct(holdingFeePct)}
+                      </span>
                     </td>
                     <td className="px-4 py-4 text-right">
                       <span className={cn(
