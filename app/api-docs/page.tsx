@@ -243,6 +243,8 @@ curl "https://rwa-api.avantisfi.com/api/compare/XAU?size=100000&direction=long"`
                 { name: "avantis", type: "object | null", description: "Avantis exchange result" },
                 { name: "ostium", type: "object | null", description: "Ostium exchange result" },
                 { name: "extended", type: "object | null", description: "Extended exchange result" },
+                { name: "edgex", type: "object | null", description: "EdgeX exchange result" },
+                { name: "grvt", type: "object | null", description: "GRVT exchange result" },
               ]} />
             </Section>
 
@@ -261,6 +263,20 @@ curl "https://rwa-api.avantisfi.com/api/compare/XAU?size=100000&direction=long"`
                 { name: "close_fee_bps", type: "number", description: "Fee charged on close" },
                 { name: "total_cost_bps", type: "number", description: "Total round-trip cost" },
                 { name: "effective_spread_bps", type: "number", description: "Effective bid-ask spread" },
+              ]} />
+
+              <h3 className="text-lg font-medium text-white mt-6 mb-4">Holding Fee Fields</h3>
+              <p className="text-[#999] mb-4">
+                Holding fees are based on the platform{"'"}s hourly funding/margin rate extrapolated to 24 hours. 
+                Symmetric exchanges return a single rate; directional exchanges (Avantis, Ostium) return separate long/short rates.
+              </p>
+              <ParamTable params={[
+                { name: "holding_fee_1h_pct", type: "number", description: "Hourly holding fee as % of notional (symmetric exchanges)" },
+                { name: "holding_fee_24h_pct", type: "number", description: "24-hour holding fee as % of notional (symmetric exchanges)" },
+                { name: "holding_fee_1h_long_pct", type: "number", description: "Hourly holding fee for longs (directional exchanges)" },
+                { name: "holding_fee_1h_short_pct", type: "number", description: "Hourly holding fee for shorts (directional exchanges)" },
+                { name: "holding_fee_24h_long_pct", type: "number", description: "24-hour holding fee for longs (directional exchanges)" },
+                { name: "holding_fee_24h_short_pct", type: "number", description: "24-hour holding fee for shorts (directional exchanges)" },
               ]} />
 
               <h3 className="text-lg font-medium text-white mt-6 mb-4">Execution Fields</h3>
@@ -319,7 +335,9 @@ curl "https://rwa-api.avantisfi.com/api/compare/XAU?size=100000&direction=long"`
     "aster": "XAUUSDT",
     "avantis": "XAU",
     "ostium": "XAUUSD",
-    "extended": "XAU-USD"
+    "extended": "XAU-USD",
+    "edgex": "XAU-USD",
+    "grvt": "XAU_USDT"
   },
   "hyperliquid": {
     "exchange": "hyperliquid",
@@ -332,6 +350,8 @@ curl "https://rwa-api.avantisfi.com/api/compare/XAU?size=100000&direction=long"`
     "open_fee_bps": 9.0,
     "close_fee_bps": 9.0,
     "total_cost_bps": 20.09,
+    "holding_fee_1h_pct": 0.00018,
+    "holding_fee_24h_pct": 0.0042,
     "max_leverage": 20,
     "mid_price": 5139.05,
     "best_bid": 5139.0,
@@ -360,11 +380,15 @@ curl "https://rwa-api.avantisfi.com/api/compare/XAU?size=100000&direction=long"`
     "open_fee_bps": 1.5,
     "close_fee_bps": 0.0,
     "total_cost_bps": 2.89,
+    "holding_fee_1h_long_pct": 0.00021,
+    "holding_fee_1h_short_pct": -0.00015,
+    "holding_fee_24h_long_pct": 0.005,
+    "holding_fee_24h_short_pct": -0.0036,
     "max_leverage": 100.0,
     "mid_price": 5137.39,
     "timestamp": 1771947189.58
   }
-  // ... other exchanges
+  // ... other exchanges (lighter, aster, avantis, extended, edgex, grvt)
 }`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
@@ -409,7 +433,7 @@ print(f"Best venue: {data['winner']}")
 print(f"Total cost: {data['winner_cost_bps']:.2f} bps")
 
 # Get individual exchange costs
-for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extended']:
+for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extended', 'edgex', 'grvt']:
     if data.get(exchange):
         cost = data[exchange].get('total_cost_bps', 'N/A')
         print(f"  {exchange}: {cost} bps")`}

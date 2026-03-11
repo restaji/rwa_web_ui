@@ -14,7 +14,7 @@ import {
   BestExecutionCard,
   BestExecutionCardSkeleton,
 } from "@/components/BestExecutionCard";
-import { VenueGrid } from "@/components/VenueGrid";
+import { VenueGrid, CostUnit } from "@/components/VenueGrid";
 import { Venue, ASSETS } from "@/lib/mockVenues";
 import { fetchComparison } from "@/lib/api";
 import { calculateAdjustedTotalCostBps, cn } from "@/lib/utils";
@@ -31,6 +31,7 @@ export default function FeeAnalysisPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [costUnit, setCostUnit] = useState<CostUnit>("bps");
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -278,7 +279,7 @@ export default function FeeAnalysisPage() {
               {isLoading ? (
                 <BestExecutionCardSkeleton />
               ) : winnerVenue ? (
-                <BestExecutionCard venue={winnerVenue} orderSize={orderSize} />
+                <BestExecutionCard venue={winnerVenue} orderSize={orderSize} direction={direction} costUnit={costUnit} />
               ) : null}
             </div>
             <div className="flex items-center gap-3">
@@ -320,6 +321,8 @@ export default function FeeAnalysisPage() {
               isLoading={isLoading}
               winnerVenueId={winnerVenue?.id || null}
               direction={direction}
+              costUnit={costUnit}
+              onCostUnitChange={setCostUnit}
             />
           </motion.section>
         )}

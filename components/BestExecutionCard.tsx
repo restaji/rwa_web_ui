@@ -4,17 +4,18 @@ import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Venue } from "@/lib/mockVenues";
-import { formatBps, formatUsd, calculateAdjustedTotalCostBps, calculateUsdCost } from "@/lib/utils";
+import { formatCostValue, costUnitSuffix, calculateAdjustedTotalCostBps } from "@/lib/utils";
+import { CostUnit } from "@/components/VenueGrid";
 
 interface BestExecutionCardProps {
   venue: Venue;
   orderSize: number;
   direction: "long" | "short";
+  costUnit: CostUnit;
 }
 
-export function BestExecutionCard({ venue, orderSize, direction }: BestExecutionCardProps) {
+export function BestExecutionCard({ venue, orderSize, direction, costUnit }: BestExecutionCardProps) {
   const totalCostBps = calculateAdjustedTotalCostBps(venue, direction);
-  const usdCost = calculateUsdCost(orderSize, totalCostBps);
 
   return (
     <motion.div
@@ -36,8 +37,7 @@ export function BestExecutionCard({ venue, orderSize, direction }: BestExecution
         </span>
         <span className="font-semibold">{venue.name}</span>
         <span>at</span>
-        <span className="text-[#D8F213] font-semibold">{formatBps(totalCostBps)} bps</span>
-        <span className="text-[#666]">({formatUsd(usdCost)})</span>
+        <span className="text-[#D8F213] font-semibold">{formatCostValue(totalCostBps, costUnit)}{costUnitSuffix(costUnit)}</span>
       </p>
     </motion.div>
   );

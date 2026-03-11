@@ -12,14 +12,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Venue } from "@/lib/mockVenues";
+import { CostUnit } from "@/components/VenueGrid";
 import {
   formatBps,
   formatUsd,
   calculateUsdCost,
   formatLiquidityFull,
-  formatHoldingFeePct,
+  formatHoldingFeeBps,
   getHoldingFeeDisplayPct,
   calculateAdjustedTotalCostBps,
+  formatCostValue,
+  costUnitSuffix,
   cn,
 } from "@/lib/utils";
 
@@ -29,9 +32,17 @@ interface VenueCardProps {
   isWinner: boolean;
   index: number;
   direction: "long" | "short";
+  costUnit: CostUnit;
 }
 
-export function VenueCard({ venue, orderSize, isWinner, index, direction }: VenueCardProps) {
+export function VenueCard({
+  venue,
+  orderSize,
+  isWinner,
+  index,
+  direction,
+  costUnit,
+}: VenueCardProps) {
   const holdingFeePct = getHoldingFeeDisplayPct(venue, direction);
   const totalCostBps = calculateAdjustedTotalCostBps(venue, direction);
   const usdCost = calculateUsdCost(orderSize, totalCostBps);
@@ -45,7 +56,7 @@ export function VenueCard({ venue, orderSize, isWinner, index, direction }: Venu
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
       className={cn(
         "p-5 relative",
-        isWinner && !hasInsufficientLiquidity ? "card-winner" : "card-nebular"
+        isWinner && !hasInsufficientLiquidity ? "card-winner" : "card-nebular",
       )}
     >
       <div>
@@ -83,7 +94,8 @@ export function VenueCard({ venue, orderSize, isWinner, index, direction }: Venu
                     </TooltipTrigger>
                     <TooltipContent className="bg-[#1A1A1A] border-white/10 rounded-xl max-w-[240px]">
                       <p className="text-xs">
-                        Insufficient liquidity to fill the full {formatLiquidityFull(orderSize)} order size
+                        Insufficient liquidity to fill the full{" "}
+                        {formatLiquidityFull(orderSize)} order size
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -92,21 +104,21 @@ export function VenueCard({ venue, orderSize, isWinner, index, direction }: Venu
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
               {venue.symbol && (
-                <span className="text-[11px] text-[#555] font-mono">{venue.symbol}</span>
+                <span className="text-[11px] text-[#555] font-mono">
+                  {venue.symbol}
+                </span>
               )}
-              <Badge variant="muted">
-                {venue.maxLeverage}x
-              </Badge>
+              <Badge variant="muted">{venue.maxLeverage}x</Badge>
             </div>
           </div>
         </div>
 
         {/* Cost breakdown */}
         <div className="space-y-2.5">
-          <CostRow label="Opening Spread" value={venue.openingSlippageBps} />
-          <CostRow label="Closing Spread" value={venue.closingSlippageBps} />
-          <CostRow label="Fees" value={venue.feeBps} />
-          <HoldingFeeRow pct={holdingFeePct} />
+          <CostRow label="Opening Spread" value={venue.openingSlippageBps} unit={costUnit} />
+          <CostRow label="Closing Spread" value={venue.closingSlippageBps} unit={costUnit} />
+          <CostRow label="Fees" value={venue.feeBps} unit={costUnit} />
+          <HoldingFeeRow pct={holdingFeePct} unit={costUnit} />
 
           {/* Divider */}
           <div className="border-t border-white/5 my-3" />
@@ -114,20 +126,28 @@ export function VenueCard({ venue, orderSize, isWinner, index, direction }: Venu
           {/* Total */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <TrendingDown className={cn(
-                "w-4 h-4",
-                isWinner && !hasInsufficientLiquidity ? "text-[#D8F213]" : "text-[#888]"
-              )} />
+              <TrendingDown
+                className={cn(
+                  "w-4 h-4",
+                  isWinner && !hasInsufficientLiquidity
+                    ? "text-[#D8F213]"
+                    : "text-[#888]",
+                )}
+              />
               <span className="text-sm font-medium text-white">Total Cost</span>
             </div>
             <div className="text-right">
-              <span className={cn(
-                "text-xl font-bold font-mono",
-                isWinner && !hasInsufficientLiquidity ? "text-[#D8F213]" : "text-white"
-              )}>
-                {formatBps(totalCostBps)}
+              <span
+                className={cn(
+                  "text-xl font-bold font-mono",
+                  isWinner && !hasInsufficientLiquidity
+                    ? "text-[#D8F213]"
+                    : "text-white",
+                )}
+              >
+                {formatCostValue(totalCostBps, costUnit)}
               </span>
-              <span className="text-sm text-[#888] ml-1">bps</span>
+              <span className="text-sm text-[#888] ml-1">{costUnit === "bps" ? "bps" : "%"}</span>
             </div>
           </div>
 
@@ -137,28 +157,29 @@ export function VenueCard({ venue, orderSize, isWinner, index, direction }: Venu
             <span className="font-mono text-white">{formatUsd(usdCost)}</span>
           </div>
         </div>
-
       </div>
     </motion.div>
   );
 }
 
-function CostRow({ label, value }: { label: string; value: number }) {
+function CostRow({ label, value, unit }: { label: string; value: number; unit: CostUnit }) {
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-[#888]">{label}</span>
-      <span className="font-mono text-white">{formatBps(value)} bps</span>
+      <span className="font-mono text-white">{formatCostValue(value, unit)}{costUnitSuffix(unit)}</span>
     </div>
   );
 }
 
-function HoldingFeeRow({ pct }: { pct: number | undefined }) {
+function HoldingFeeRow({ pct, unit }: { pct: number | undefined; unit: CostUnit }) {
   const isNegative = pct !== undefined && pct < 0;
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-[#888]">Holding Fee (24H)</span>
-      <span className={cn("font-mono", isNegative ? "text-emerald-400" : "text-white")}>
-        {formatHoldingFeePct(pct)}
+      <span
+        className={cn("font-mono", isNegative ? "text-white" : "text-white")}
+      >
+        {formatHoldingFeeBps(pct, unit)}
       </span>
     </div>
   );

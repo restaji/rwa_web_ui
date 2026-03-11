@@ -16,6 +16,9 @@ const NAV_SECTIONS = [
   { id: "avantis", label: "Avantis", indent: true },
   { id: "ostium", label: "Ostium", indent: true },
   { id: "extended", label: "Extended", indent: true },
+  { id: "edgex", label: "EdgeX", indent: true },
+  { id: "grvt", label: "GRVT", indent: true },
+  { id: "holding-fee", label: "Holding Fee" },
   { id: "comparison", label: "Exchange Comparison" },
   { id: "assets", label: "Supported Assets" },
 ];
@@ -161,10 +164,14 @@ export default function DocsPage() {
               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 my-6">
                 <h4 className="text-white font-mono text-sm mb-4">Total Cost Formula</h4>
                 <code className="block text-[#D8F213] font-mono text-sm leading-relaxed">
-                  total_cost_bps = opening_slippage + closing_slippage + open_fee + close_fee
+                  total_cost_bps = opening_slippage + closing_slippage + open_fee + close_fee + holding_fee_24h
                 </code>
                 <p className="text-[#666] text-sm mt-4">
                   USD Cost = (order_size × total_cost_bps) ÷ 10,000
+                </p>
+                <p className="text-[#666] text-sm mt-2">
+                  The holding fee can be positive (adds cost) or negative (reduces cost) depending on 
+                  the funding rate and trade direction.
                 </p>
               </div>
 
@@ -189,14 +196,14 @@ export default function DocsPage() {
             {/* Exchanges Overview */}
             <Section id="exchanges" title="Supported Exchanges">
               <p>
-                We currently support six perpetual DEXs, each with different pricing models and fee 
+                We currently support eight perpetual DEXs, each with different pricing models and fee 
                 structures. Understanding these differences helps you choose the best venue for your trade.
               </p>
 
               <div className="grid sm:grid-cols-2 gap-4 my-6">
                 <ExchangeCard 
                   name="Order Book Exchanges" 
-                  exchanges={["Hyperliquid", "Lighter", "Aster", "Extended"]}
+                  exchanges={["Hyperliquid", "Lighter", "Aster", "Extended", "EdgeX", "GRVT"]}
                   description="Your order walks through available liquidity. Slippage depends on order book depth."
                 />
                 <ExchangeCard 
@@ -356,6 +363,87 @@ export default function DocsPage() {
               </p>
             </Section>
 
+            {/* EdgeX */}
+            <Section id="edgex" title="EdgeX" badge="Order Book">
+              <p>
+                EdgeX is a high-performance perpetual DEX with order book-based trading. 
+                It offers deep liquidity for popular RWA pairs.
+              </p>
+
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">How Slippage is Calculated</h3>
+              <p>
+                Same order book methodology as other CLOB exchanges. We fetch the full order book and 
+                simulate your execution to calculate slippage.
+              </p>
+
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">Fee Structure</h3>
+              <p>
+                Fees are fetched via API. Both maker and taker rates are returned per market.
+              </p>
+            </Section>
+
+            {/* GRVT */}
+            <Section id="grvt" title="GRVT" badge="Order Book">
+              <p>
+                GRVT (Gravity) is an institutional-grade perpetual DEX with order book trading. 
+                It focuses on deep liquidity and low-latency execution.
+              </p>
+
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">How Slippage is Calculated</h3>
+              <p>
+                Same order book methodology as other CLOB exchanges. We fetch the full order book and 
+                simulate your execution to calculate slippage.
+              </p>
+
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">Fee Structure</h3>
+              <p>
+                Fees are fetched via API. Both maker and taker rates are returned per market.
+              </p>
+            </Section>
+
+            {/* Holding Fee */}
+            <Section id="holding-fee" title="Holding Fee">
+              <p>
+                In addition to execution costs, perpetual positions incur ongoing holding fees 
+                (also known as funding or margin fees). These are periodic charges that accumulate 
+                while you hold a position open.
+              </p>
+
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">How It{"'"}s Calculated</h3>
+              <p>
+                Each platform charges a funding or margin fee on an hourly basis. We take the hourly 
+                rate and extrapolate it to a 24-hour period to give a standardized comparison across 
+                all venues.
+              </p>
+
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 my-6">
+                <h4 className="text-white font-mono text-sm mb-4">Holding Fee Formula</h4>
+                <code className="block text-[#D8F213] font-mono text-sm leading-relaxed">
+                  holding_fee_24h = hourly_funding_rate × 24
+                </code>
+                <p className="text-[#666] text-sm mt-4">
+                  Displayed in basis points (bps) for consistency with other cost metrics.
+                </p>
+              </div>
+
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">Directional vs Symmetric</h3>
+              <p>
+                <strong className="text-white">Symmetric exchanges</strong> (Hyperliquid, Lighter, Aster, Extended, EdgeX, GRVT) 
+                publish a single funding rate. Positive means longs pay and shorts receive; negative means 
+                the opposite. We negate the rate for the short side automatically.
+              </p>
+              <p>
+                <strong className="text-white">Directional exchanges</strong> (Avantis, Ostium) publish 
+                separate rates for longs and shorts. Each side has its own holding fee that may differ.
+              </p>
+
+              <InfoBox title="Holding Fee in Total Cost">
+                The holding fee is factored into the adjusted total cost and the best execution 
+                calculation. A negative holding fee (where you receive funding) reduces your 
+                effective total cost, while a positive holding fee increases it.
+              </InfoBox>
+            </Section>
+
             {/* Comparison Table */}
             <Section id="comparison" title="Exchange Comparison">
               <p>
@@ -373,6 +461,8 @@ export default function DocsPage() {
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Avantis</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Ostium</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Extended</th>
+                      <th className="text-center py-3 px-4 text-[#666] font-medium">EdgeX</th>
+                      <th className="text-center py-3 px-4 text-[#666] font-medium">GRVT</th>
                     </tr>
                   </thead>
                   <tbody className="text-[#999]">
@@ -384,6 +474,8 @@ export default function DocsPage() {
                       <td className="py-3 px-4 text-center">Oracle</td>
                       <td className="py-3 px-4 text-center">Oracle</td>
                       <td className="py-3 px-4 text-center">Order Book</td>
+                      <td className="py-3 px-4 text-center">Order Book</td>
+                      <td className="py-3 px-4 text-center">Order Book</td>
                     </tr>
                     <tr className="border-b border-white/5">
                       <td className="py-3 px-4 text-white">Spread Applied</td>
@@ -391,6 +483,8 @@ export default function DocsPage() {
                       <td className="py-3 px-4 text-center">2× (round trip)</td>
                       <td className="py-3 px-4 text-center">2× (round trip)</td>
                       <td className="py-3 px-4 text-center text-[#D8F213]">1× (open only)</td>
+                      <td className="py-3 px-4 text-center">2× (round trip)</td>
+                      <td className="py-3 px-4 text-center">2× (round trip)</td>
                       <td className="py-3 px-4 text-center">2× (round trip)</td>
                       <td className="py-3 px-4 text-center">2× (round trip)</td>
                     </tr>
@@ -402,6 +496,8 @@ export default function DocsPage() {
                       <td className="py-3 px-4 text-center">Separate rate</td>
                       <td className="py-3 px-4 text-center text-[#D8F213]">0 (no fee)</td>
                       <td className="py-3 px-4 text-center">= Open fee</td>
+                      <td className="py-3 px-4 text-center">= Open fee</td>
+                      <td className="py-3 px-4 text-center">= Open fee</td>
                     </tr>
                     <tr className="border-b border-white/5">
                       <td className="py-3 px-4 text-white">Fee Discounts</td>
@@ -411,6 +507,19 @@ export default function DocsPage() {
                       <td className="py-3 px-4 text-center">—</td>
                       <td className="py-3 px-4 text-center">Season overrides</td>
                       <td className="py-3 px-4 text-center">—</td>
+                      <td className="py-3 px-4 text-center">—</td>
+                      <td className="py-3 px-4 text-center">—</td>
+                    </tr>
+                    <tr className="border-b border-white/5">
+                      <td className="py-3 px-4 text-white">Holding Fee</td>
+                      <td className="py-3 px-4 text-center">Symmetric</td>
+                      <td className="py-3 px-4 text-center">Symmetric</td>
+                      <td className="py-3 px-4 text-center">Symmetric</td>
+                      <td className="py-3 px-4 text-center">Directional</td>
+                      <td className="py-3 px-4 text-center">Directional</td>
+                      <td className="py-3 px-4 text-center">Symmetric</td>
+                      <td className="py-3 px-4 text-center">Symmetric</td>
+                      <td className="py-3 px-4 text-center">Symmetric</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 text-white">Liquidity Check</td>
@@ -419,6 +528,8 @@ export default function DocsPage() {
                       <td className="py-3 px-4 text-center">Book depth</td>
                       <td className="py-3 px-4 text-center">Max position cap</td>
                       <td className="py-3 px-4 text-center">Always filled</td>
+                      <td className="py-3 px-4 text-center">Book depth</td>
+                      <td className="py-3 px-4 text-center">Book depth</td>
                       <td className="py-3 px-4 text-center">Book depth</td>
                     </tr>
                   </tbody>
@@ -443,25 +554,27 @@ export default function DocsPage() {
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Avantis</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Ostium</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Extended</th>
+                      <th className="text-center py-3 px-4 text-[#666] font-medium">EdgeX</th>
+                      <th className="text-center py-3 px-4 text-[#666] font-medium">GRVT</th>
                     </tr>
                   </thead>
                   <tbody className="text-[#999]">
                     {[
-                      { asset: "Gold (XAU)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓" },
-                      { asset: "Silver (XAG)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓" },
-                      { asset: "EUR/USD", hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓" },
-                      { asset: "GBP/USD", hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—" },
-                      { asset: "USD/JPY", hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓" },
-                      { asset: "Apple (AAPL)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—" },
-                      { asset: "Microsoft (MSFT)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—" },
-                      { asset: "Google (GOOG)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—" },
-                      { asset: "Amazon (AMZN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—" },
-                      { asset: "Meta (META)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—" },
-                      { asset: "Nvidia (NVDA)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—" },
-                      { asset: "Tesla (TSLA)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—" },
-                      { asset: "S&P 500 (SPY)", hl: "—", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—" },
-                      { asset: "Nasdaq 100 (QQQ)", hl: "—", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—" },
-                      { asset: "Coinbase (COIN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—" },
+                      { asset: "Gold (XAU)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
+                      { asset: "Silver (XAG)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
+                      { asset: "EUR/USD", hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
+                      { asset: "GBP/USD", hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "USD/JPY", hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
+                      { asset: "Apple (AAPL)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Microsoft (MSFT)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Google (GOOG)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Amazon (AMZN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Meta (META)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Nvidia (NVDA)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Tesla (TSLA)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "S&P 500 (SPY)", hl: "—", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Nasdaq 100 (QQQ)", hl: "—", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Coinbase (COIN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
                     ].map((row, i) => (
                       <tr key={i} className="border-b border-white/5">
                         <td className="py-3 px-4 text-white">{row.asset}</td>
@@ -471,6 +584,8 @@ export default function DocsPage() {
                         <td className="py-3 px-4 text-center">{row.av === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
                         <td className="py-3 px-4 text-center">{row.os === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
                         <td className="py-3 px-4 text-center">{row.ex === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
+                        <td className="py-3 px-4 text-center">{row.eg === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
+                        <td className="py-3 px-4 text-center">{row.gr === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
                       </tr>
                     ))}
                   </tbody>

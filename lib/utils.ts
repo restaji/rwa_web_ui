@@ -9,6 +9,18 @@ export function formatBps(bps: number): string {
   return bps.toFixed(2);
 }
 
+export function formatPercent(bps: number): string {
+  return (bps / 100).toFixed(4);
+}
+
+export function formatCostValue(bps: number, unit: "bps" | "pct"): string {
+  return unit === "bps" ? formatBps(bps) : formatPercent(bps);
+}
+
+export function costUnitSuffix(unit: "bps" | "pct"): string {
+  return unit === "bps" ? " bps" : "%";
+}
+
 export function formatUsd(amount: number): string {
   if (amount >= 1000000) {
     return `$${(amount / 1000000).toFixed(2)}M`;
@@ -68,12 +80,13 @@ export function formatLiquidityFull(amount: number | undefined): string {
 }
 
 /**
- * Format a holding fee percentage.
+ * Format a holding fee (receives the raw percentage value).
  * Positive = position pays this rate (cost), Negative = position receives it (benefit).
  */
-export function formatHoldingFeePct(pct: number | undefined): string {
+export function formatHoldingFeeBps(pct: number | undefined, unit: "bps" | "pct" = "bps"): string {
   if (pct === undefined || pct === null) return "—";
-  return `${pct.toFixed(4)}%`;
+  const bpsValue = pct * 100;
+  return `${formatCostValue(bpsValue, unit)}${costUnitSuffix(unit)}`;
 }
 
 /**

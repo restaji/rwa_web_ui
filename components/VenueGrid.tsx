@@ -3,7 +3,14 @@
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpDown, ArrowDown, ArrowUp, Info, LayoutGrid, List } from "lucide-react";
+import {
+  ArrowUpDown,
+  ArrowDown,
+  ArrowUp,
+  Info,
+  LayoutGrid,
+  List,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -17,15 +24,20 @@ import {
   formatBps,
   formatUsd,
   formatLiquidityFull,
-  formatHoldingFeePct,
+  formatHoldingFeeBps,
   getHoldingFeeDisplayPct,
   calculateAdjustedTotalCostBps,
+  formatCostValue,
+  costUnitSuffix,
   cn,
 } from "@/lib/utils";
+
+export type CostUnit = "bps" | "pct";
 
 type SortField = "totalCost" | "fees" | "slippage";
 type SortDirection = "asc" | "desc";
 type ViewMode = "cards" | "table";
+
 
 interface VenueGridProps {
   venues: Venue[];
@@ -33,6 +45,8 @@ interface VenueGridProps {
   isLoading: boolean;
   winnerVenueId: string | null;
   direction: "long" | "short";
+  costUnit: CostUnit;
+  onCostUnitChange: (unit: CostUnit) => void;
 }
 
 export function VenueGrid({
@@ -41,6 +55,8 @@ export function VenueGrid({
   isLoading,
   winnerVenueId,
   direction,
+  costUnit,
+  onCostUnitChange,
 }: VenueGridProps) {
   const [sortField, setSortField] = useState<SortField>("totalCost");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -87,9 +103,17 @@ export function VenueGrid({
     }
   };
 
-  const SortIcon = ({ field, isActive }: { field: SortField; isActive: boolean }) => {
-    const iconClass = isActive ? "w-3.5 h-3.5 text-[#0A0A0A]" : "w-3.5 h-3.5 text-[#555]";
-    
+  const SortIcon = ({
+    field,
+    isActive,
+  }: {
+    field: SortField;
+    isActive: boolean;
+  }) => {
+    const iconClass = isActive
+      ? "w-3.5 h-3.5 text-[#0A0A0A]"
+      : "w-3.5 h-3.5 text-[#555]";
+
     if (sortField !== field) {
       return <ArrowUpDown className={iconClass} />;
     }
@@ -121,14 +145,30 @@ export function VenueGrid({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="text-left px-4 py-3"><div className="h-4 w-16 rounded skeleton-shimmer" /></th>
-                  <th className="text-left px-4 py-3"><div className="h-4 w-14 rounded skeleton-shimmer" /></th>
-                  <th className="text-right px-4 py-3"><div className="h-4 w-20 rounded skeleton-shimmer ml-auto" /></th>
-                  <th className="text-right px-4 py-3"><div className="h-4 w-20 rounded skeleton-shimmer ml-auto" /></th>
-                  <th className="text-right px-4 py-3"><div className="h-4 w-12 rounded skeleton-shimmer ml-auto" /></th>
-                  <th className="text-right px-4 py-3"><div className="h-4 w-20 rounded skeleton-shimmer ml-auto" /></th>
-                  <th className="text-right px-4 py-3"><div className="h-4 w-16 rounded skeleton-shimmer ml-auto" /></th>
-                  <th className="text-right px-4 py-3"><div className="h-4 w-16 rounded skeleton-shimmer ml-auto" /></th>
+                  <th className="text-left px-4 py-3">
+                    <div className="h-4 w-16 rounded skeleton-shimmer" />
+                  </th>
+                  <th className="text-left px-4 py-3">
+                    <div className="h-4 w-14 rounded skeleton-shimmer" />
+                  </th>
+                  <th className="text-right px-4 py-3">
+                    <div className="h-4 w-20 rounded skeleton-shimmer ml-auto" />
+                  </th>
+                  <th className="text-right px-4 py-3">
+                    <div className="h-4 w-20 rounded skeleton-shimmer ml-auto" />
+                  </th>
+                  <th className="text-right px-4 py-3">
+                    <div className="h-4 w-12 rounded skeleton-shimmer ml-auto" />
+                  </th>
+                  <th className="text-right px-4 py-3">
+                    <div className="h-4 w-20 rounded skeleton-shimmer ml-auto" />
+                  </th>
+                  <th className="text-right px-4 py-3">
+                    <div className="h-4 w-16 rounded skeleton-shimmer ml-auto" />
+                  </th>
+                  <th className="text-right px-4 py-3">
+                    <div className="h-4 w-16 rounded skeleton-shimmer ml-auto" />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -143,13 +183,27 @@ export function VenueGrid({
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4"><div className="h-4 w-10 rounded skeleton-shimmer" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-14 rounded skeleton-shimmer ml-auto" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-14 rounded skeleton-shimmer ml-auto" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-12 rounded skeleton-shimmer ml-auto" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-18 rounded skeleton-shimmer ml-auto" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-16 rounded skeleton-shimmer ml-auto" /></td>
-                    <td className="px-4 py-4"><div className="h-4 w-14 rounded skeleton-shimmer ml-auto" /></td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-10 rounded skeleton-shimmer" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-14 rounded skeleton-shimmer ml-auto" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-14 rounded skeleton-shimmer ml-auto" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-12 rounded skeleton-shimmer ml-auto" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-18 rounded skeleton-shimmer ml-auto" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-16 rounded skeleton-shimmer ml-auto" />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="h-4 w-14 rounded skeleton-shimmer ml-auto" />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -171,12 +225,8 @@ export function VenueGrid({
       {/* Header with sorting and view toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold text-white">
-            All Venues
-          </h3>
-          <span className="text-sm text-[#666]">
-            {venues.length} results
-          </span>
+          <h3 className="text-lg font-semibold text-white">All Venues</h3>
+          <span className="text-sm text-[#666]">{venues.length} results</span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -198,7 +248,9 @@ export function VenueGrid({
               onClick={() => setViewMode("table")}
               className={cn(
                 "p-2 rounded-full transition-all",
-                viewMode === "table" ? "bg-white/10 text-white" : "text-[#666] hover:text-white"
+                viewMode === "table"
+                  ? "bg-white/10 text-white"
+                  : "text-[#666] hover:text-white",
               )}
             >
               <List className="w-4 h-4" />
@@ -207,10 +259,38 @@ export function VenueGrid({
               onClick={() => setViewMode("cards")}
               className={cn(
                 "p-2 rounded-full transition-all",
-                viewMode === "cards" ? "bg-white/10 text-white" : "text-[#666] hover:text-white"
+                viewMode === "cards"
+                  ? "bg-white/10 text-white"
+                  : "text-[#666] hover:text-white",
               )}
             >
               <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Unit toggle */}
+          <div className="flex items-center bg-white/5 rounded-full p-1">
+            <button
+              onClick={() => onCostUnitChange("bps")}
+              className={cn(
+                "px-3 py-1.5 text-xs font-medium rounded-full transition-all",
+                costUnit === "bps"
+                  ? "bg-white/10 text-white"
+                  : "text-[#666] hover:text-white"
+              )}
+            >
+              bps
+            </button>
+            <button
+              onClick={() => onCostUnitChange("pct")}
+              className={cn(
+                "px-3 py-1.5 text-xs font-medium rounded-full transition-all",
+                costUnit === "pct"
+                  ? "bg-white/10 text-white"
+                  : "text-[#666] hover:text-white"
+              )}
+            >
+              %
             </button>
           </div>
 
@@ -220,11 +300,11 @@ export function VenueGrid({
               Sort:
             </span>
             <div className="flex gap-1.5">
-            {[
-              { field: "totalCost" as const, label: "Cost" },
-              { field: "fees" as const, label: "Fees" },
-              { field: "slippage" as const, label: "Slippage" },
-            ].map(({ field, label }) => (
+              {[
+                { field: "totalCost" as const, label: "Cost" },
+                { field: "fees" as const, label: "Fees" },
+                { field: "slippage" as const, label: "Slippage" },
+              ].map(({ field, label }) => (
                 <button
                   key={field}
                   onClick={() => handleSort(field)}
@@ -232,7 +312,7 @@ export function VenueGrid({
                     "h-9 px-4 text-xs rounded-full flex items-center gap-1.5 transition-all duration-200 font-medium",
                     sortField === field
                       ? "bg-[#D8F213] text-[#0A0A0A]"
-                      : "bg-white/5 border border-white/10 text-[#999] hover:bg-white/10"
+                      : "bg-white/5 border border-white/10 text-[#999] hover:bg-white/10",
                   )}
                 >
                   {label}
@@ -259,6 +339,7 @@ export function VenueGrid({
                 isWinner={venue.id === winnerVenueId}
                 index={index}
                 direction={direction}
+                costUnit={costUnit}
               />
             ))}
           </AnimatePresence>
@@ -274,114 +355,191 @@ export function VenueGrid({
             className="card-nebular overflow-hidden"
           >
             <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/5">
-                <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Platform</th>
-                <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Max Leverage</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Opening Spread</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Closing Spread</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Fees</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Holding Fee (24H)</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">Total Cost</th>
-                <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">USD Cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedVenues.map((venue, index) => {
-                const holdingFeePct = getHoldingFeeDisplayPct(venue, direction);
-                const totalCost = calculateAdjustedTotalCostBps(venue, direction);
-                const usdCost = calculateUsdCost(orderSize, totalCost);
-                const isWinner = venue.id === winnerVenueId;
-                const hasInsufficientLiquidity = venue.hasInsufficientLiquidity;
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
+                    Platform
+                  </th>
+                  <th className="text-left text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
+                    Max Leverage
+                  </th>
+                  <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
+                    Opening Spread
+                  </th>
+                  <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
+                    Closing Spread
+                  </th>
+                  <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
+                    Fees
+                  </th>
+                  <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
+                    Holding Fee (24H)
+                  </th>
+                  <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
+                    Total Cost
+                  </th>
+                  <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
+                    USD Cost
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedVenues.map((venue, index) => {
+                  const holdingFeePct = getHoldingFeeDisplayPct(
+                    venue,
+                    direction,
+                  );
+                  const totalCost = calculateAdjustedTotalCostBps(
+                    venue,
+                    direction,
+                  );
+                  const usdCost = calculateUsdCost(orderSize, totalCost);
+                  const isWinner = venue.id === winnerVenueId;
+                  const hasInsufficientLiquidity =
+                    venue.hasInsufficientLiquidity;
 
-                return (
-                  <motion.tr
-                    key={venue.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className={cn(
-                      "border-b border-white/5 last:border-0 transition-colors hover:bg-white/[0.02]",
-                      isWinner && !hasInsufficientLiquidity && "bg-[#D8F213]/[0.03] border-l-2 border-l-[#D8F213]"
-                    )}
-                  >
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
-                          <Image
-                            src={venue.logo}
-                            alt={venue.name}
-                            width={32}
-                            height={32}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-white">
-                              {venue.name}
-                            </span>
-                            {isWinner && !hasInsufficientLiquidity && (
-                              <span className="text-[10px] bg-[#D8F213] text-[#0A0A0A] px-2 py-0.5 rounded-full font-semibold">
-                                BEST
+                  return (
+                    <motion.tr
+                      key={venue.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className={cn(
+                        "border-b border-white/5 last:border-0 transition-colors hover:bg-white/[0.02]",
+                        isWinner &&
+                          !hasInsufficientLiquidity &&
+                          "bg-[#D8F213]/[0.03] border-l-2 border-l-[#D8F213]",
+                      )}
+                    >
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+                            <Image
+                              src={venue.logo}
+                              alt={venue.name}
+                              width={32}
+                              height={32}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-white">
+                                {venue.name}
+                              </span>
+                              {isWinner && !hasInsufficientLiquidity && (
+                                <span className="text-[10px] bg-[#D8F213] text-[#0A0A0A] px-2 py-0.5 rounded-full font-semibold">
+                                  BEST
+                                </span>
+                              )}
+                              {hasInsufficientLiquidity && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full cursor-help">
+                                      Partial fill
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-[#1A1A1A] border-white/10 rounded-xl max-w-[240px]">
+                                    <p className="text-xs">
+                                      Insufficient liquidity to fill the full{" "}
+                                      {formatLiquidityFull(orderSize)} order
+                                      size
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
+                            {venue.symbol && (
+                              <span className="text-[11px] text-[#555] font-mono">
+                                {venue.symbol}
                               </span>
                             )}
-                            {hasInsufficientLiquidity && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full cursor-help">
-                                    Partial fill
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-[#1A1A1A] border-white/10 rounded-xl max-w-[240px]">
-                                  <p className="text-xs">
-                                    Insufficient liquidity to fill the full {formatLiquidityFull(orderSize)} order size
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
                           </div>
-                          {venue.symbol && (
-                            <span className="text-[11px] text-[#555] font-mono">{venue.symbol}</span>
-                          )}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 tabular-nums text-[#888]" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
-                      {venue.maxLeverage}x
-                    </td>
-                    <td className="px-4 py-4 text-right tabular-nums text-white" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
-                      {formatBps(venue.openingSlippageBps)} bps
-                    </td>
-                    <td className="px-4 py-4 text-right tabular-nums text-white" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
-                      {formatBps(venue.closingSlippageBps)} bps
-                    </td>
-                    <td className="px-4 py-4 text-right tabular-nums text-white" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
-                      {formatBps(venue.feeBps)} bps
-                    </td>
-                    <td className="px-4 py-4 text-right tabular-nums" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
-                      <span className={cn(
-                        holdingFeePct !== undefined && holdingFeePct < 0 ? "text-emerald-400" : "text-white"
-                      )}>
-                        {formatHoldingFeePct(holdingFeePct)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <span className={cn(
-                        "tabular-nums font-medium",
-                        isWinner && !hasInsufficientLiquidity ? "text-[#D8F213]" : "text-white"
-                      )} style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
-                        {formatBps(totalCost)} bps
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-right tabular-nums text-white" style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace' }}>
-                      {formatUsd(usdCost)}
-                    </td>
-                  </motion.tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td
+                        className="px-4 py-4 tabular-nums text-[#888]"
+                        style={{
+                          fontFamily:
+                            'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
+                        }}
+                      >
+                        {venue.maxLeverage}x
+                      </td>
+                      <td
+                        className="px-4 py-4 text-right tabular-nums text-white"
+                        style={{
+                          fontFamily:
+                            'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
+                        }}
+                      >
+                        {formatCostValue(venue.openingSlippageBps, costUnit)}{costUnitSuffix(costUnit)}
+                      </td>
+                      <td
+                        className="px-4 py-4 text-right tabular-nums text-white"
+                        style={{
+                          fontFamily:
+                            'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
+                        }}
+                      >
+                        {formatCostValue(venue.closingSlippageBps, costUnit)}{costUnitSuffix(costUnit)}
+                      </td>
+                      <td
+                        className="px-4 py-4 text-right tabular-nums text-white"
+                        style={{
+                          fontFamily:
+                            'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
+                        }}
+                      >
+                        {formatCostValue(venue.feeBps, costUnit)}{costUnitSuffix(costUnit)}
+                      </td>
+                      <td
+                        className="px-4 py-4 text-right tabular-nums"
+                        style={{
+                          fontFamily:
+                            'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
+                        }}
+                      >
+                        <span
+                          className={cn(
+                            holdingFeePct !== undefined && holdingFeePct < 0
+                              ? "text-white"
+                              : "text-white",
+                          )}
+                        >
+                          {formatHoldingFeeBps(holdingFeePct, costUnit)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <span
+                          className={cn(
+                            "tabular-nums font-medium",
+                            isWinner && !hasInsufficientLiquidity
+                              ? "text-[#D8F213]"
+                              : "text-white",
+                          )}
+                          style={{
+                            fontFamily:
+                              'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
+                          }}
+                        >
+                          {formatCostValue(totalCost, costUnit)}{costUnitSuffix(costUnit)}
+                        </span>
+                      </td>
+                      <td
+                        className="px-4 py-4 text-right tabular-nums text-white"
+                        style={{
+                          fontFamily:
+                            'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
+                        }}
+                      >
+                        {formatUsd(usdCost)}
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </motion.div>
         </TooltipProvider>
       )}
