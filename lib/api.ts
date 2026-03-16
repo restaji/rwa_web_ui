@@ -8,7 +8,7 @@
 import { Venue } from "./mockVenues";
 
 const API_BASE =
-    process.env.NEXT_PUBLIC_API_URL || "https://rwa-api.avantisfi.com";
+    process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz";
 
 const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     hyperliquid: { name: "Hyperliquid", logo: "/logos/hyperliquid.png" },
