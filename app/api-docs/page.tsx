@@ -549,8 +549,7 @@ for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extend
                 The API currently has generous rate limits suitable for most use cases:
               </p>
               <ul className="list-disc list-inside space-y-2 text-[#999] mt-4">
-                <li><strong className="text-white">100 requests per minute</strong> per IP address</li>
-                <li><strong className="text-white">1,000 requests per hour</strong> per IP address</li>
+                <li><strong className="text-white">20 requests per 10 seconds</strong> per IP address</li>
               </ul>
               <p className="mt-4">
                 If you need higher limits for production use, please contact us.
