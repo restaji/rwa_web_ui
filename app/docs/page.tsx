@@ -568,13 +568,13 @@ export default function DocsPage() {
                       { asset: "Apple (AAPL)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
                       { asset: "Microsoft (MSFT)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
                       { asset: "Google (GOOG)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Amazon (AMZN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Amazon (AMZN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
                       { asset: "Meta (META)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
                       { asset: "Nvidia (NVDA)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Tesla (TSLA)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Tesla (TSLA)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
                       { asset: "S&P 500 (SPY)", hl: "—", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
                       { asset: "Nasdaq 100 (QQQ)", hl: "—", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Coinbase (COIN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Coinbase (COIN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
                     ].map((row, i) => (
                       <tr key={i} className="border-b border-white/5">
                         <td className="py-3 px-4 text-white">{row.asset}</td>
