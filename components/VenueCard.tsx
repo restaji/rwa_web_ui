@@ -117,7 +117,7 @@ export function VenueCard({
         <div className="space-y-2.5">
           <CostRow label="Opening Spread" value={venue.openingSlippageBps} unit={costUnit} />
           <CostRow label="Closing Spread" value={venue.closingSlippageBps} unit={costUnit} />
-          <CostRow label="Fees" value={venue.feeBps} unit={costUnit} decimals={2} />
+          <CostRow label="Fees" value={venue.feeBps} unit={costUnit} />
           <HoldingFeeRow pct={holdingFeePct} unit={costUnit} />
 
           {/* Divider */}
@@ -162,11 +162,11 @@ export function VenueCard({
   );
 }
 
-function CostRow({ label, value, unit, decimals }: { label: string; value: number; unit: CostUnit; decimals?: number }) {
+function CostRow({ label, value, unit }: { label: string; value: number; unit: CostUnit }) {
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-[#888]">{label}</span>
-      <span className="font-mono text-white">{formatCostValue(value, unit, decimals)}{costUnitSuffix(unit)}</span>
+      <span className="font-mono text-white">{formatCostValue(value, unit)}{costUnitSuffix(unit)}</span>
     </div>
   );
 }
@@ -179,7 +179,7 @@ function HoldingFeeRow({ pct, unit }: { pct: number | undefined; unit: CostUnit 
       <span
         className={cn("font-mono", isNegative ? "text-white" : "text-white")}
       >
-        {formatHoldingFeeBps(pct, unit, 2)}
+        {formatHoldingFeeBps(pct, unit)}
       </span>
     </div>
   );

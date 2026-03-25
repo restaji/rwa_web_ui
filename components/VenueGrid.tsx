@@ -491,7 +491,7 @@ export function VenueGrid({
                             'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
                         }}
                       >
-                        {formatCostValue(venue.feeBps, costUnit, 2)}{costUnitSuffix(costUnit)}
+                        {formatCostValue(venue.feeBps, costUnit)}{costUnitSuffix(costUnit)}
                       </td>
                       <td
                         className="px-4 py-4 text-right tabular-nums"
@@ -507,7 +507,7 @@ export function VenueGrid({
                               : "text-white",
                           )}
                         >
-                          {formatHoldingFeeBps(holdingFeePct, costUnit, 2)}
+                          {formatHoldingFeeBps(holdingFeePct, costUnit)}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-right">
