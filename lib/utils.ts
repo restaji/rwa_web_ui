@@ -15,7 +15,7 @@ export function formatPercent(bps: number, decimals: number = 4): string {
 
 export function formatCostValue(bps: number, unit: "bps" | "pct", decimals?: number): string {
   if (unit === "bps") return formatBps(bps, decimals ?? 3);
-  return formatPercent(bps, decimals !== undefined ? decimals + 2 : 4);
+  return formatPercent(bps, decimals !== undefined ? decimals + 2 : 5);
 }
 
 export function costUnitSuffix(unit: "bps" | "pct"): string {
