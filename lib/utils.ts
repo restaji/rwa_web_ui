@@ -5,16 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatBps(bps: number): string {
-  return bps.toFixed(2);
+export function formatBps(bps: number, decimals: number = 3): string {
+  return bps.toFixed(decimals);
 }
 
-export function formatPercent(bps: number): string {
-  return (bps / 100).toFixed(4);
+export function formatPercent(bps: number, decimals: number = 4): string {
+  return (bps / 100).toFixed(decimals);
 }
 
-export function formatCostValue(bps: number, unit: "bps" | "pct"): string {
-  return unit === "bps" ? formatBps(bps) : formatPercent(bps);
+export function formatCostValue(bps: number, unit: "bps" | "pct", decimals?: number): string {
+  if (unit === "bps") return formatBps(bps, decimals ?? 3);
+  return formatPercent(bps, decimals !== undefined ? decimals + 1 : 4);
 }
 
 export function costUnitSuffix(unit: "bps" | "pct"): string {
@@ -83,10 +84,10 @@ export function formatLiquidityFull(amount: number | undefined): string {
  * Format a holding fee (receives the raw percentage value).
  * Positive = position pays this rate (cost), Negative = position receives it (benefit).
  */
-export function formatHoldingFeeBps(pct: number | undefined, unit: "bps" | "pct" = "bps"): string {
+export function formatHoldingFeeBps(pct: number | undefined, unit: "bps" | "pct" = "bps", decimals?: number): string {
   if (pct === undefined || pct === null) return "—";
   const bpsValue = pct * 100;
-  return `${formatCostValue(bpsValue, unit)}${costUnitSuffix(unit)}`;
+  return `${formatCostValue(bpsValue, unit, decimals)}${costUnitSuffix(unit)}`;
 }
 
 /**

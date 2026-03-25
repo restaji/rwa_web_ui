@@ -157,9 +157,9 @@ export default function FeeAnalysisPage() {
           <nav className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <img 
-                  src="/logo.svg" 
-                  alt="Real World Perps" 
+                <img
+                  src="/logo.svg"
+                  alt="Real World Perps"
                   className="h-9 w-auto"
                 />
                 <span className="font-light text-white tracking-wide text-lg">Real World Perps</span>

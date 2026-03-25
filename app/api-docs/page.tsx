@@ -137,7 +137,7 @@ export default function APIDocsPage() {
               </p>
               <CodeBlock 
                 id="base-url-code"
-                code="https://api.realworldperps.xyz"
+                code="http://localhost:5000"
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
               />
@@ -153,7 +153,7 @@ export default function APIDocsPage() {
                 id="auth-code"
                 language="bash"
                 code={`# No authentication required
-curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"`}
+curl "http://localhost:5000/api/compare/XAU?size=100000&direction=long"`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
               />
@@ -214,7 +214,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
               <CodeBlock 
                 id="example-request"
                 language="bash"
-                code={`curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long&order_type=taker"`}
+                code={`curl "http://localhost:5000/api/compare/XAU?size=100000&direction=long&order_type=taker"`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
               />
@@ -399,7 +399,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
                 id="js-example"
                 language="javascript"
                 code={`const response = await fetch(
-  'https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long'
+  'http://localhost:5000/api/compare/XAU?size=100000&direction=long'
 );
 const data = await response.json();
 
@@ -420,7 +420,7 @@ console.log(\`USD cost: $\${usdCost.toFixed(2)}\`);`}
                 code={`import requests
 
 response = requests.get(
-    'https://api.realworldperps.xyz/api/compare/XAU',
+    'http://localhost:5000/api/compare/XAU',
     params={
         'size': 100000,
         'direction': 'long',

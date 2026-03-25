@@ -8,13 +8,14 @@
 import { Venue } from "./mockVenues";
 
 const API_BASE =
-    process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz";
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     hyperliquid: { name: "Hyperliquid", logo: "/logos/hyperliquid.png" },
     lighter: { name: "Lighter", logo: "/logos/lighter.png" },
     aster: { name: "Aster", logo: "/logos/aster.jpg" },
     avantis: { name: "Avantis", logo: "/logos/avantis.png" },
+    avantis_x: { name: "Avantis X", logo: "/logos/avantis.png" },
     ostium: { name: "Ostium", logo: "/logos/ostium.webp" },
     extended: { name: "Extended", logo: "/logos/extended.png" },
     edgex: { name: "EdgeX", logo: "/logos/edgex.png" },
@@ -66,6 +67,7 @@ interface CompareAPIResponse {
     lighter?: ExchangeResult | null;
     aster?: ExchangeResult | null;
     avantis?: ExchangeResult | null;
+    avantis_x?: ExchangeResult | null;
     ostium?: ExchangeResult | null;
     extended?: ExchangeResult | null;
     edgex?: ExchangeResult | null;
