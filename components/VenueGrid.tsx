@@ -24,9 +24,7 @@ import {
   formatBps,
   formatUsd,
   formatLiquidityFull,
-  formatHoldingFeeBps,
-  getHoldingFeeDisplayPct,
-  calculateAdjustedTotalCostBps,
+  calculateTotalCostBps,
   formatCostValue,
   costUnitSuffix,
   cn,
@@ -73,8 +71,8 @@ export function VenueGrid({
 
       switch (sortField) {
         case "totalCost":
-          aValue = calculateAdjustedTotalCostBps(a, direction);
-          bValue = calculateAdjustedTotalCostBps(b, direction);
+          aValue = calculateTotalCostBps(a);
+          bValue = calculateTotalCostBps(b);
           break;
         case "fees":
           aValue = a.feeBps;
@@ -373,9 +371,6 @@ export function VenueGrid({
                     Fees
                   </th>
                   <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
-                    Holding Fee (24H)
-                  </th>
-                  <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
                     Total Cost
                   </th>
                   <th className="text-right text-xs text-[#666] font-medium uppercase tracking-wider px-4 py-3">
@@ -385,14 +380,7 @@ export function VenueGrid({
               </thead>
               <tbody>
                 {sortedVenues.map((venue, index) => {
-                  const holdingFeePct = getHoldingFeeDisplayPct(
-                    venue,
-                    direction,
-                  );
-                  const totalCost = calculateAdjustedTotalCostBps(
-                    venue,
-                    direction,
-                  );
+                  const totalCost = calculateTotalCostBps(venue);
                   const usdCost = calculateUsdCost(orderSize, totalCost);
                   const isWinner = venue.id === winnerVenueId;
                   const hasInsufficientLiquidity =
@@ -492,23 +480,6 @@ export function VenueGrid({
                         }}
                       >
                         {formatCostValue(venue.feeBps, costUnit)}{costUnitSuffix(costUnit)}
-                      </td>
-                      <td
-                        className="px-4 py-4 text-right tabular-nums"
-                        style={{
-                          fontFamily:
-                            'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace',
-                        }}
-                      >
-                        <span
-                          className={cn(
-                            holdingFeePct !== undefined && holdingFeePct < 0
-                              ? "text-white"
-                              : "text-white",
-                          )}
-                        >
-                          {formatHoldingFeeBps(holdingFeePct, costUnit)}
-                        </span>
                       </td>
                       <td className="px-4 py-4 text-right">
                         <span

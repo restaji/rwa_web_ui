@@ -34,7 +34,8 @@ export const ASSETS: Asset[] = [
   // Commodities
   { id: "XAU", symbol: "XAU/USD", name: "Gold" },
   { id: "XAG", symbol: "XAG/USD", name: "Silver" },
-  // { id: "WTI", symbol: "WTI/USD", name: "Crude Oil" },
+  { id: "WTI", symbol: "WTI/USD", name: "WTI Crude Oil" },
+  { id: "BRENT", symbol: "BRENT/USD", name: "Brent Crude Oil" },
   // Forex
   { id: "EURUSD", symbol: "EUR/USD", name: "Euro" },
   { id: "GBPUSD", symbol: "GBP/USD", name: "British Pound" },

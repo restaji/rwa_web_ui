@@ -18,7 +18,6 @@ const NAV_SECTIONS = [
   { id: "extended", label: "Extended", indent: true },
   { id: "edgex", label: "EdgeX", indent: true },
   { id: "grvt", label: "GRVT", indent: true },
-  { id: "holding-fee", label: "Holding Fee" },
   { id: "comparison", label: "Exchange Comparison" },
   { id: "assets", label: "Supported Assets" },
 ];
@@ -164,14 +163,10 @@ export default function DocsPage() {
               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 my-6">
                 <h4 className="text-white font-mono text-sm mb-4">Total Cost Formula</h4>
                 <code className="block text-[#D8F213] font-mono text-sm leading-relaxed">
-                  total_cost_bps = opening_slippage + closing_slippage + open_fee + close_fee + holding_fee_24h
+                  total_cost_bps = opening_slippage + closing_slippage + open_fee + close_fee
                 </code>
                 <p className="text-[#666] text-sm mt-4">
                   USD Cost = (order_size × total_cost_bps) ÷ 10,000
-                </p>
-                <p className="text-[#666] text-sm mt-2">
-                  The holding fee can be positive (adds cost) or negative (reduces cost) depending on 
-                  the funding rate and trade direction.
                 </p>
               </div>
 
@@ -401,49 +396,6 @@ export default function DocsPage() {
               </p>
             </Section>
 
-            {/* Holding Fee */}
-            <Section id="holding-fee" title="Holding Fee">
-              <p>
-                In addition to execution costs, perpetual positions incur ongoing holding fees 
-                (also known as funding or margin fees). These are periodic charges that accumulate 
-                while you hold a position open.
-              </p>
-
-              <h3 className="text-lg font-medium text-white mt-8 mb-3">How It{"'"}s Calculated</h3>
-              <p>
-                Each platform charges a funding or margin fee on an hourly basis. We take the hourly 
-                rate and extrapolate it to a 24-hour period to give a standardized comparison across 
-                all venues.
-              </p>
-
-              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 my-6">
-                <h4 className="text-white font-mono text-sm mb-4">Holding Fee Formula</h4>
-                <code className="block text-[#D8F213] font-mono text-sm leading-relaxed">
-                  holding_fee_24h = hourly_funding_rate × 24
-                </code>
-                <p className="text-[#666] text-sm mt-4">
-                  Displayed in basis points (bps) for consistency with other cost metrics.
-                </p>
-              </div>
-
-              <h3 className="text-lg font-medium text-white mt-8 mb-3">Directional vs Symmetric</h3>
-              <p>
-                <strong className="text-white">Symmetric exchanges</strong> (Hyperliquid, Lighter, Aster, Extended, EdgeX, GRVT) 
-                publish a single funding rate. Positive means longs pay and shorts receive; negative means 
-                the opposite. We negate the rate for the short side automatically.
-              </p>
-              <p>
-                <strong className="text-white">Directional exchanges</strong> (Avantis, Ostium) publish 
-                separate rates for longs and shorts. Each side has its own holding fee that may differ.
-              </p>
-
-              <InfoBox title="Holding Fee in Total Cost">
-                The holding fee is factored into the adjusted total cost and the best execution 
-                calculation. A negative holding fee (where you receive funding) reduces your 
-                effective total cost, while a positive holding fee increases it.
-              </InfoBox>
-            </Section>
-
             {/* Comparison Table */}
             <Section id="comparison" title="Exchange Comparison">
               <p>
@@ -510,17 +462,6 @@ export default function DocsPage() {
                       <td className="py-3 px-4 text-center">—</td>
                       <td className="py-3 px-4 text-center">—</td>
                     </tr>
-                    <tr className="border-b border-white/5">
-                      <td className="py-3 px-4 text-white">Holding Fee</td>
-                      <td className="py-3 px-4 text-center">Symmetric</td>
-                      <td className="py-3 px-4 text-center">Symmetric</td>
-                      <td className="py-3 px-4 text-center">Symmetric</td>
-                      <td className="py-3 px-4 text-center">Directional</td>
-                      <td className="py-3 px-4 text-center">Directional</td>
-                      <td className="py-3 px-4 text-center">Symmetric</td>
-                      <td className="py-3 px-4 text-center">Symmetric</td>
-                      <td className="py-3 px-4 text-center">Symmetric</td>
-                    </tr>
                     <tr>
                       <td className="py-3 px-4 text-white">Liquidity Check</td>
                       <td className="py-3 px-4 text-center">Book depth</td>
@@ -560,21 +501,23 @@ export default function DocsPage() {
                   </thead>
                   <tbody className="text-[#999]">
                     {[
-                      { asset: "Gold (XAU)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
-                      { asset: "Silver (XAG)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
-                      { asset: "EUR/USD", hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
-                      { asset: "GBP/USD", hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "USD/JPY", hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
-                      { asset: "Apple (AAPL)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Microsoft (MSFT)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Google (GOOG)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Amazon (AMZN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
-                      { asset: "Meta (META)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Nvidia (NVDA)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Tesla (TSLA)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
-                      { asset: "S&P 500 (SPY)", hl: "—", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Nasdaq 100 (QQQ)", hl: "—", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "Coinbase (COIN)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
+                      { asset: "Gold (XAU)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
+                      { asset: "Silver (XAG)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
+                      { asset: "WTI Crude Oil",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—" },
+                      { asset: "Brent Crude Oil",    hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
+                      { asset: "EUR/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
+                      { asset: "GBP/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "USD/JPY",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
+                      { asset: "Apple (AAPL)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Microsoft (MSFT)",   hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Google (GOOG)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Amazon (AMZN)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
+                      { asset: "Meta (META)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Nvidia (NVDA)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Tesla (TSLA)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
+                      { asset: "S&P 500 (SPY)",      hl: "—", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Nasdaq 100 (QQQ)",   hl: "—", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
+                      { asset: "Coinbase (COIN)",    hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
                     ].map((row, i) => (
                       <tr key={i} className="border-b border-white/5">
                         <td className="py-3 px-4 text-white">{row.asset}</td>

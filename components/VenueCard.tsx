@@ -18,9 +18,7 @@ import {
   formatUsd,
   calculateUsdCost,
   formatLiquidityFull,
-  formatHoldingFeeBps,
-  getHoldingFeeDisplayPct,
-  calculateAdjustedTotalCostBps,
+  calculateTotalCostBps,
   formatCostValue,
   costUnitSuffix,
   cn,
@@ -43,8 +41,7 @@ export function VenueCard({
   direction,
   costUnit,
 }: VenueCardProps) {
-  const holdingFeePct = getHoldingFeeDisplayPct(venue, direction);
-  const totalCostBps = calculateAdjustedTotalCostBps(venue, direction);
+  const totalCostBps = calculateTotalCostBps(venue);
   const usdCost = calculateUsdCost(orderSize, totalCostBps);
   const hasInsufficientLiquidity = venue.hasInsufficientLiquidity;
 
@@ -118,7 +115,6 @@ export function VenueCard({
           <CostRow label="Opening Spread" value={venue.openingSlippageBps} unit={costUnit} />
           <CostRow label="Closing Spread" value={venue.closingSlippageBps} unit={costUnit} />
           <CostRow label="Fees" value={venue.feeBps} unit={costUnit} />
-          <HoldingFeeRow pct={holdingFeePct} unit={costUnit} />
 
           {/* Divider */}
           <div className="border-t border-white/5 my-3" />
@@ -171,19 +167,6 @@ function CostRow({ label, value, unit }: { label: string; value: number; unit: C
   );
 }
 
-function HoldingFeeRow({ pct, unit }: { pct: number | undefined; unit: CostUnit }) {
-  const isNegative = pct !== undefined && pct < 0;
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-[#888]">Holding Fee (24H)</span>
-      <span
-        className={cn("font-mono", isNegative ? "text-white" : "text-white")}
-      >
-        {formatHoldingFeeBps(pct, unit)}
-      </span>
-    </div>
-  );
-}
 
 export function VenueCardSkeleton() {
   return (
