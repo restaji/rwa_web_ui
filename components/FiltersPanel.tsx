@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Search } from "lucide-react";
-import { ASSETS, ORDER_SIZES } from "@/lib/mockVenues";
+import { ASSETS, ORDER_SIZES, AssetCategory } from "@/lib/mockVenues";
 import { cn } from "@/lib/utils";
 
 interface FiltersPanelProps {
@@ -33,6 +33,7 @@ export function FiltersPanel({
   const isFirstRender = useRef(true);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<AssetCategory | "All">("All");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Auto-apply when filters change (skip first render)
@@ -50,6 +51,7 @@ export function FiltersPanel({
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsOpen(false);
         setSearch("");
+        setActiveCategory("All");
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -80,11 +82,21 @@ export function FiltersPanel({
   };
 
   const currentAsset = ASSETS.find((a) => a.id === selectedAsset);
-  const filteredAssets = ASSETS.filter(
-    (a) =>
+  const filteredAssets = ASSETS.filter((a) => {
+    const matchesSearch =
       a.symbol.toLowerCase().includes(search.toLowerCase()) ||
-      a.name.toLowerCase().includes(search.toLowerCase())
-  );
+      a.name.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = activeCategory === "All" || a.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const CATEGORIES: Array<{ id: AssetCategory | "All"; label: string }> = [
+    { id: "All", label: "All" },
+    { id: "Equities", label: "Equities" },
+    { id: "Indices", label: "Indices" },
+    { id: "Commodities", label: "Commodities" },
+    { id: "Forex", label: "Forex" },
+  ];
 
   const isCustomActive = customSize !== "" && ORDER_SIZES.every((s) => s.value !== orderSize);
 
@@ -110,7 +122,25 @@ export function FiltersPanel({
           </button>
 
           {isOpen && (
-            <div className="absolute top-full left-0 mt-2 w-64 bg-[#1A1A1A]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 z-50 shadow-xl">
+            <div className="absolute top-full left-0 mt-2 w-96 bg-[#1A1A1A]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 z-50 shadow-xl">
+              {/* Category tabs */}
+              <div className="flex gap-1 mb-2 p-1 bg-white/[0.03] rounded-xl">
+                {CATEGORIES.map(({ id, label }) => (
+                  <button
+                    key={id}
+                    onClick={() => setActiveCategory(id)}
+                    className={cn(
+                      "flex-1 px-1.5 py-1.5 text-xs font-medium rounded-lg transition-all duration-150",
+                      activeCategory === id
+                        ? "bg-[#D8F213] text-[#0A0A0A]"
+                        : "text-[#666] hover:text-white"
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               {/* Search input */}
               <div className="relative mb-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#666]" />
@@ -136,6 +166,7 @@ export function FiltersPanel({
                         setSelectedAsset(asset.id);
                         setIsOpen(false);
                         setSearch("");
+                        setActiveCategory("All");
                       }}
                       className={cn(
                         "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left",

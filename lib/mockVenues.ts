@@ -23,36 +23,37 @@ export interface Venue {
   fundingFee24hShortPct?: number;
 }
 
+export type AssetCategory = "Commodities" | "Forex" | "Equities" | "Indices";
+
 export interface Asset {
   id: string;
   symbol: string;
   name: string;
+  category: AssetCategory;
 }
 
 // Assets matching the Python backend ASSETS dict
 export const ASSETS: Asset[] = [
   // Commodities
-  { id: "XAU", symbol: "XAU/USD", name: "Gold" },
-  { id: "XAG", symbol: "XAG/USD", name: "Silver" },
-  { id: "WTI", symbol: "WTI/USD", name: "WTI Crude Oil" },
-  { id: "BRENT", symbol: "BRENT/USD", name: "Brent Crude Oil" },
+  { id: "XAU",   symbol: "XAU/USD",   name: "Gold",           category: "Commodities" },
+  { id: "XAG",   symbol: "XAG/USD",   name: "Silver",         category: "Commodities" },
+  { id: "WTI",   symbol: "WTI/USD",   name: "WTI Crude Oil",  category: "Commodities" },
+  { id: "BRENT", symbol: "BRENT/USD", name: "Brent Crude Oil", category: "Commodities" },
   // Forex
-  { id: "EURUSD", symbol: "EUR/USD", name: "Euro" },
-  { id: "GBPUSD", symbol: "GBP/USD", name: "British Pound" },
-  { id: "USDJPY", symbol: "USD/JPY", name: "Japanese Yen" },
-  // MAG7 Stocks
-  { id: "AAPL", symbol: "AAPL/USD", name: "Apple" },
-  { id: "MSFT", symbol: "MSFT/USD", name: "Microsoft" },
-  { id: "GOOG", symbol: "GOOG/USD", name: "Google" },
-  { id: "AMZN", symbol: "AMZN/USD", name: "Amazon" },
-  { id: "META", symbol: "META/USD", name: "Meta" },
-  { id: "NVDA", symbol: "NVDA/USD", name: "Nvidia" },
-  { id: "TSLA", symbol: "TSLA/USD", name: "Tesla" },
-  // Indices
-  { id: "SPY", symbol: "SPY/USD", name: "S&P 500" },
-  { id: "QQQ", symbol: "QQQ/USD", name: "Nasdaq 100" },
-  // Other
-  { id: "COIN", symbol: "COIN/USD", name: "Coinbase" },
+  { id: "EURUSD", symbol: "EUR/USD", name: "Euro",           category: "Forex" },
+  { id: "GBPUSD", symbol: "GBP/USD", name: "British Pound",  category: "Forex" },
+  { id: "USDJPY", symbol: "USD/JPY", name: "Japanese Yen",   category: "Forex" },
+  // Equities (MAG7 + Indices + Other stocks)
+  { id: "AAPL", symbol: "AAPL/USD", name: "Apple",       category: "Equities" },
+  { id: "MSFT", symbol: "MSFT/USD", name: "Microsoft",   category: "Equities" },
+  { id: "GOOG", symbol: "GOOG/USD", name: "Google",      category: "Equities" },
+  { id: "AMZN", symbol: "AMZN/USD", name: "Amazon",      category: "Equities" },
+  { id: "META", symbol: "META/USD", name: "Meta",        category: "Equities" },
+  { id: "NVDA", symbol: "NVDA/USD", name: "Nvidia",      category: "Equities" },
+  { id: "TSLA", symbol: "TSLA/USD", name: "Tesla",       category: "Equities" },
+  { id: "SPY",  symbol: "SPY/USD",  name: "S&P 500",     category: "Indices" },
+  { id: "QQQ",  symbol: "QQQ/USD",  name: "Nasdaq 100",  category: "Indices" },
+  { id: "COIN", symbol: "COIN/USD", name: "Coinbase",    category: "Equities" },
 ];
 
 export const ORDER_SIZES = [
