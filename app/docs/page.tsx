@@ -18,6 +18,7 @@ const NAV_SECTIONS = [
   { id: "extended", label: "Extended", indent: true },
   { id: "edgex", label: "EdgeX", indent: true },
   { id: "grvt", label: "GRVT", indent: true },
+  { id: "variational", label: "Variational", indent: true },
   { id: "slippage-calc", label: "Slippage Calculation" },
   { id: "comparison",    label: "Exchange Comparison" },
   { id: "assets",        label: "Supported Assets" },
@@ -122,8 +123,8 @@ export default function DocsPage() {
               </p>
               <p>
                 Different exchanges use different pricing models. Some use traditional order books where 
-                your order walks through available liquidity. Others use a simulated order book where 
-                slippage is derived from an oracle price and a dynamic spread parameter.
+                your order walks through available liquidity. Others use oracle-based pricing where you 
+                trade against a pool at oracle prices plus a spread.
               </p>
               <p>
                 We fetch real-time data from each exchange and calculate what your actual cost would be 
@@ -149,7 +150,7 @@ export default function DocsPage() {
                 <li>Fetch current order book or oracle prices from each exchange</li>
                 <li>Query each exchange{"'"}s fee API for your specific fee tier</li>
                 <li>Simulate walking through the order book (for order book exchanges)</li>
-                <li>Calculate spread costs (for simulated order book exchanges)</li>
+                <li>Calculate spread costs (for oracle-based exchanges)</li>
                 <li>Sum up all costs and convert to basis points</li>
                 <li>Identify the lowest-cost venue</li>
               </ol>
@@ -193,7 +194,7 @@ export default function DocsPage() {
             {/* Exchanges Overview */}
             <Section id="exchanges" title="Supported Exchanges">
               <p>
-                We currently support eight perpetual DEXs, each with different pricing models and fee 
+                We currently support nine perpetual DEXs, each with different pricing models and fee 
                 structures. Understanding these differences helps you choose the best venue for your trade.
               </p>
 
@@ -204,9 +205,14 @@ export default function DocsPage() {
                   description="Your order walks through available liquidity. Slippage depends on order book depth."
                 />
                 <ExchangeCard 
-                  name="Simulated Order Book" 
+                  name="Oracle-Based Exchanges" 
                   exchanges={["Avantis", "Ostium"]}
                   description="Trade against oracle prices with a dynamic spread. Slippage is modelled from the spread parameter rather than real order book depth."
+                />
+                <ExchangeCard 
+                  name="Quote-Based (RFQ)" 
+                  exchanges={["Variational"]}
+                  description="A single liquidity provider publishes executable bid/ask quotes at fixed size buckets. There are no trading fees — the spread is the only cost."
                 />
               </div>
             </Section>
@@ -284,9 +290,8 @@ export default function DocsPage() {
             {/* Avantis */}
             <Section id="avantis" title="Avantis" badge="Simulated Order Book">
               <p>
-                Avantis is a perpetuals protocol on Base that uses a simulated order book model. 
-                Instead of resting limit orders, prices are derived from an oracle with a dynamic 
-                spread that acts as synthetic slippage.
+                Avantis is an oracle-based perpetuals protocol on Base. Unlike order book exchanges, 
+                you trade against a liquidity pool at oracle prices.
               </p>
 
               <h3 className="text-lg font-medium text-white mt-8 mb-3">How Spread is Calculated</h3>
@@ -297,7 +302,7 @@ export default function DocsPage() {
 
               <InfoBox title="One-Way Spread">
                 Avantis is unique — spread only applies when opening a position, not when closing. 
-                This means the spread cost is half what it would be on other simulated order book exchanges.
+                This means the spread cost is half what it would be on other oracle-based exchanges.
               </InfoBox>
 
               <h3 className="text-lg font-medium text-white mt-8 mb-3">Fee Structure</h3>
@@ -317,7 +322,7 @@ export default function DocsPage() {
             </Section>
 
             {/* Ostium */}
-            <Section id="ostium" title="Ostium" badge="Simulated Order Book">
+            <Section id="ostium" title="Ostium" badge="Oracle-Based">
               <p>
                 Ostium specializes in real-world asset perpetuals. They use their own price feed that 
                 provides bid, ask, and mid prices directly.
@@ -399,45 +404,32 @@ export default function DocsPage() {
               </p>
             </Section>
 
-            {/* Slippage Calculation */}
-            <Section id="slippage-calc" title="Slippage Calculation">
+            {/* Variational */}
+            <Section id="variational" title="Variational" badge="Quote-Based">
               <p>
-                How slippage is computed depends on the exchange{"'"}s pricing model. We treat CLOB 
-                and simulated order book venues differently.
+                Variational runs Omni, an RFQ-style perpetuals venue with no order book. A single 
+                Omni Liquidity Provider (OLP) is the sole market maker and publishes executable 
+                bid/ask quotes at fixed notional buckets. Variational currently lists commodities 
+                only — Gold, Silver, WTI Crude Oil, and Brent Crude Oil.
               </p>
 
-              <h3 className="text-lg font-medium text-white mt-8 mb-3">Order Book Exchanges (CLOB)</h3>
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">How Slippage is Calculated</h3>
               <p>
-                For Hyperliquid, Lighter, Aster, Extended, EdgeX, and GRVT we fetch the full order 
-                book and simulate walking through it level by level until the full notional is filled.
+                Rather than walking an order book, the OLP publishes quotes at discrete size buckets 
+                (base, $1K, $100K, $1M). We pick the bucket matching your order size and derive the 
+                effective bid/ask spread from those quotes — that spread is your execution cost.
               </p>
 
-              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 my-6">
-                <h4 className="text-white font-mono text-sm mb-4">CLOB Slippage Formula</h4>
-                <code className="block text-[#D8F213] font-mono text-sm leading-relaxed whitespace-pre">
-{`weighted_fill = Σ (level_price × level_size) / total_size
-slippage_bps  = |weighted_fill − mid_price| / mid_price × 10,000`}
-                </code>
-                <p className="text-[#666] text-sm mt-4">
-                  Both opening and closing slippage are calculated this way. Closing slippage uses 
-                  the opposite side of the book (bids for a long exit, asks for a short exit).
-                </p>
-              </div>
-
-              <h3 className="text-lg font-medium text-white mt-8 mb-3">Simulated Order Book (Avantis &amp; Ostium)</h3>
-              <p>
-                Avantis and Ostium use a simulated order book model — there is no real resting 
-                order book. These venues publish a spread parameter that represents how much the 
-                execution price deviates from the oracle price. We use this spread as the synthetic 
-                slippage component for both opening and closing legs.
-              </p>
-
-              <InfoBox title="Insufficient Liquidity">
-                For CLOB exchanges, if the order book does not have enough resting orders to fill 
-                the full requested size, the venue is marked <strong>Insufficient Liquidity</strong> and 
-                excluded from the best-execution ranking. For Avantis and Ostium, a protocol-published 
-                maximum position size cap is used instead.
+              <InfoBox title="Zero Trading Fees">
+                Omni charges no open or close fees. The venue earns entirely from the quoted spread, 
+                so your total cost is the round-trip spread with no fee component on top.
               </InfoBox>
+
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">Fee Structure</h3>
+              <p>
+                There are no maker or taker fees. Total cost is purely the size-adjusted spread 
+                between the OLP{"'"}s bid and ask at your order size.
+              </p>
             </Section>
 
             {/* Comparison Table */}
@@ -447,7 +439,7 @@ slippage_bps  = |weighted_fill − mid_price| / mid_price × 10,000`}
               </p>
 
               <div className="overflow-x-auto my-6">
-                <table className="w-full text-sm whitespace-nowrap">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-white/10">
                       <th className="text-left py-2.5 px-3 text-[#666] font-medium">Feature</th>
@@ -459,19 +451,21 @@ slippage_bps  = |weighted_fill − mid_price| / mid_price × 10,000`}
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">Extended</th>
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">EdgeX</th>
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">GRVT</th>
+                      <th className="text-center py-2.5 px-3 text-[#666] font-medium">Variational</th>
                     </tr>
                   </thead>
                   <tbody className="text-[#999]">
                     <tr className="border-b border-white/5">
-                      <td className="py-2.5 px-3 text-white font-medium">Pricing Model</td>
-                      <td className="py-2.5 px-3 text-center">Order Book</td>
-                      <td className="py-2.5 px-3 text-center">Order Book</td>
-                      <td className="py-2.5 px-3 text-center">Order Book</td>
-                      <td className="py-2.5 px-3 text-center">Simulated OB</td>
-                      <td className="py-2.5 px-3 text-center">Simulated OB</td>
-                      <td className="py-2.5 px-3 text-center">Order Book</td>
-                      <td className="py-2.5 px-3 text-center">Order Book</td>
-                      <td className="py-2.5 px-3 text-center">Order Book</td>
+                      <td className="py-3 px-4 text-white">Pricing Model</td>
+                      <td className="py-3 px-4 text-center">Order Book</td>
+                      <td className="py-3 px-4 text-center">Order Book</td>
+                      <td className="py-3 px-4 text-center">Order Book</td>
+                      <td className="py-3 px-4 text-center">Oracle</td>
+                      <td className="py-3 px-4 text-center">Oracle</td>
+                      <td className="py-3 px-4 text-center">Order Book</td>
+                      <td className="py-3 px-4 text-center">Order Book</td>
+                      <td className="py-3 px-4 text-center">Order Book</td>
+                      <td className="py-3 px-4 text-center">Quote (RFQ)</td>
                     </tr>
                     <tr className="border-b border-white/5">
                       <td className="py-2.5 px-3 text-white font-medium">Spread Applied</td>
@@ -483,6 +477,7 @@ slippage_bps  = |weighted_fill − mid_price| / mid_price × 10,000`}
                       <td className="py-2.5 px-3 text-center">2× round trip</td>
                       <td className="py-2.5 px-3 text-center">2× round trip</td>
                       <td className="py-2.5 px-3 text-center">2× round trip</td>
+                      <td className="py-2.5 px-3 text-center">Quoted spread</td>
                     </tr>
                     <tr className="border-b border-white/5">
                       <td className="py-2.5 px-3 text-white font-medium">Close Fee</td>
@@ -494,6 +489,7 @@ slippage_bps  = |weighted_fill − mid_price| / mid_price × 10,000`}
                       <td className="py-2.5 px-3 text-center">= Open fee</td>
                       <td className="py-2.5 px-3 text-center">= Open fee</td>
                       <td className="py-2.5 px-3 text-center">= Open fee</td>
+                      <td className="py-2.5 px-3 text-center text-[#D8F213]">No fees</td>
                     </tr>
                     <tr className="border-b border-white/5">
                       <td className="py-2.5 px-3 text-white font-medium">Fee Discounts</td>
@@ -505,17 +501,19 @@ slippage_bps  = |weighted_fill − mid_price| / mid_price × 10,000`}
                       <td className="py-2.5 px-3 text-center">—</td>
                       <td className="py-2.5 px-3 text-center">—</td>
                       <td className="py-2.5 px-3 text-center">—</td>
+                      <td className="py-2.5 px-3 text-center text-[#D8F213]">Zero fees</td>
                     </tr>
                     <tr>
-                      <td className="py-2.5 px-3 text-white font-medium">Liquidity Check</td>
-                      <td className="py-2.5 px-3 text-center">Book depth</td>
-                      <td className="py-2.5 px-3 text-center">Book depth</td>
-                      <td className="py-2.5 px-3 text-center">Book depth</td>
-                      <td className="py-2.5 px-3 text-center">Position cap</td>
-                      <td className="py-2.5 px-3 text-center">Position cap</td>
-                      <td className="py-2.5 px-3 text-center">Book depth</td>
-                      <td className="py-2.5 px-3 text-center">Book depth</td>
-                      <td className="py-2.5 px-3 text-center">Book depth</td>
+                      <td className="py-3 px-4 text-white">Liquidity Check</td>
+                      <td className="py-3 px-4 text-center">Book depth</td>
+                      <td className="py-3 px-4 text-center">Book depth</td>
+                      <td className="py-3 px-4 text-center">Book depth</td>
+                      <td className="py-3 px-4 text-center">Max position cap</td>
+                      <td className="py-3 px-4 text-center">Always filled</td>
+                      <td className="py-3 px-4 text-center">Book depth</td>
+                      <td className="py-3 px-4 text-center">Book depth</td>
+                      <td className="py-3 px-4 text-center">Book depth</td>
+                      <td className="py-3 px-4 text-center">Quote buckets</td>
                     </tr>
                   </tbody>
                 </table>
@@ -541,27 +539,28 @@ slippage_bps  = |weighted_fill − mid_price| / mid_price × 10,000`}
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Extended</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">EdgeX</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">GRVT</th>
+                      <th className="text-center py-3 px-4 text-[#666] font-medium">Variational</th>
                     </tr>
                   </thead>
                   <tbody className="text-[#999]">
                     {[
-                      { asset: "Gold (XAU)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
-                      { asset: "Silver (XAG)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
-                      { asset: "WTI Crude Oil",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—" },
-                      { asset: "Brent Crude Oil",    hl: "✓", lt: "—", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
-                      { asset: "EUR/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
-                      { asset: "GBP/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—" },
-                      { asset: "USD/JPY",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
-                      { asset: "Apple (AAPL)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—" },
-                      { asset: "Microsoft (MSFT)",   hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
-                      { asset: "Google (GOOG)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—" },
-                      { asset: "Amazon (AMZN)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
-                      { asset: "Meta (META)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—" },
-                      { asset: "Nvidia (NVDA)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—" },
-                      { asset: "Tesla (TSLA)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓" },
-                      { asset: "S&P 500 (SPY)",      hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—" },
-                      { asset: "Nasdaq 100 (QQQ)",   hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—" },
-                      { asset: "Coinbase (COIN)",    hl: "✓", lt: "—", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓" },
+                      { asset: "Gold (XAU)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "✓" },
+                      { asset: "Silver (XAG)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "✓" },
+                      { asset: "WTI Crude Oil",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "✓" },
+                      { asset: "Brent Crude Oil",    hl: "✓", lt: "—", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "✓" },
+                      { asset: "EUR/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—" },
+                      { asset: "GBP/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—", va: "—" },
+                      { asset: "USD/JPY",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—" },
+                      { asset: "Apple (AAPL)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
+                      { asset: "Microsoft (MSFT)",   hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—" },
+                      { asset: "Google (GOOG)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
+                      { asset: "Amazon (AMZN)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "—" },
+                      { asset: "Meta (META)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—" },
+                      { asset: "Nvidia (NVDA)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
+                      { asset: "Tesla (TSLA)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "—" },
+                      { asset: "S&P 500 (SPY)",      hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
+                      { asset: "Nasdaq 100 (QQQ)",   hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
+                      { asset: "Coinbase (COIN)",    hl: "✓", lt: "—", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓", va: "—" },
                     ].map((row, i) => (
                       <tr key={i} className="border-b border-white/5">
                         <td className="py-3 px-4 text-white">{row.asset}</td>
@@ -573,6 +572,7 @@ slippage_bps  = |weighted_fill − mid_price| / mid_price × 10,000`}
                         <td className="py-3 px-4 text-center">{row.ex === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
                         <td className="py-3 px-4 text-center">{row.eg === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
                         <td className="py-3 px-4 text-center">{row.gr === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
+                        <td className="py-3 px-4 text-center">{row.va === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
                       </tr>
                     ))}
                   </tbody>

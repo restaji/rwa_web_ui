@@ -245,6 +245,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
                 { name: "extended", type: "object | null", description: "Extended exchange result" },
                 { name: "edgex", type: "object | null", description: "EdgeX exchange result" },
                 { name: "grvt", type: "object | null", description: "GRVT exchange result" },
+                { name: "variational", type: "object | null", description: "Variational (Omni) exchange result — commodities only" },
               ]} />
             </Section>
 
@@ -337,7 +338,8 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
     "ostium": "XAUUSD",
     "extended": "XAU-USD",
     "edgex": "XAU-USD",
-    "grvt": "XAU_USDT"
+    "grvt": "XAU_USDT",
+    "variational": "XAU"
   },
   "hyperliquid": {
     "exchange": "hyperliquid",
@@ -388,7 +390,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
     "mid_price": 5137.39,
     "timestamp": 1771947189.58
   }
-  // ... other exchanges (lighter, aster, avantis, extended, edgex, grvt)
+  // ... other exchanges (lighter, aster, avantis, extended, edgex, grvt, variational)
 }`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
@@ -433,7 +435,7 @@ print(f"Best venue: {data['winner']}")
 print(f"Total cost: {data['winner_cost_bps']:.2f} bps")
 
 # Get individual exchange costs
-for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extended', 'edgex', 'grvt']:
+for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extended', 'edgex', 'grvt', 'variational']:
     if data.get(exchange):
         cost = data[exchange].get('total_cost_bps', 'N/A')
         print(f"  {exchange}: {cost} bps")`}
