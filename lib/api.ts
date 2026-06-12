@@ -8,7 +8,8 @@
 import { Venue } from "./mockVenues";
 
 const API_BASE =
-    process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz";
+    process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz"
+    
 
 const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     hyperliquid: { name: "Hyperliquid", logo: "/logos/hyperliquid.png" },
@@ -20,6 +21,7 @@ const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     extended: { name: "Extended", logo: "/logos/extended.png" },
     edgex: { name: "EdgeX", logo: "/logos/edgex.png" },
     grvt: { name: "GRVT", logo: "/logos/grvt.png" },
+    variational: { name: "Variational", logo: "/logos/variational.png" },
 };
 
 const EXCHANGE_KEYS = Object.keys(EXCHANGE_META);
@@ -72,6 +74,7 @@ interface CompareAPIResponse {
     extended?: ExchangeResult | null;
     edgex?: ExchangeResult | null;
     grvt?: ExchangeResult | null;
+    variational?: ExchangeResult | null;
 }
 
 /* ------------------------------------------------------------------ */
