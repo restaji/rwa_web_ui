@@ -19,7 +19,7 @@ const NAV_SECTIONS = [
   { id: "edgex", label: "EdgeX", indent: true },
   { id: "grvt", label: "GRVT", indent: true },
   { id: "variational", label: "Variational", indent: true },
-  { id: "slippage-calc", label: "Slippage Calculation" },
+  { id: "ondo", label: "Ondo", indent: true },
   { id: "comparison",    label: "Exchange Comparison" },
   { id: "assets",        label: "Supported Assets" },
   { id: "limitations",   label: "Limitations" },
@@ -194,14 +194,14 @@ export default function DocsPage() {
             {/* Exchanges Overview */}
             <Section id="exchanges" title="Supported Exchanges">
               <p>
-                We currently support nine perpetual DEXs, each with different pricing models and fee 
+                We currently support ten perpetual DEXs, each with different pricing models and fee 
                 structures. Understanding these differences helps you choose the best venue for your trade.
               </p>
 
               <div className="grid sm:grid-cols-2 gap-4 my-6">
                 <ExchangeCard 
                   name="Order Book Exchanges" 
-                  exchanges={["Hyperliquid", "Lighter", "Aster", "Extended", "EdgeX", "GRVT"]}
+                  exchanges={["Hyperliquid", "Lighter", "Aster", "Extended", "EdgeX", "GRVT", "Ondo"]}
                   description="Your order walks through available liquidity. Slippage depends on order book depth."
                 />
                 <ExchangeCard 
@@ -409,8 +409,11 @@ export default function DocsPage() {
               <p>
                 Variational runs Omni, an RFQ-style perpetuals venue with no order book. A single 
                 Omni Liquidity Provider (OLP) is the sole market maker and publishes executable 
-                bid/ask quotes at fixed notional buckets. Variational currently lists commodities 
-                only — Gold, Silver, WTI Crude Oil, and Brent Crude Oil.
+                bid/ask quotes at fixed notional buckets. Variational lists the commodities — 
+                Gold, Silver, WTI Crude Oil, and Brent Crude Oil — along with Nvidia (NVDA), 
+                Tesla (TSLA), the S&amp;P 500 (SPY), Nasdaq 100 (QQQ), Coinbase (COIN), and 
+                SpaceX (SPCX). Because Omni is quote-driven, an asset may not have a live quote 
+                at every moment, but these are the symbols it makes markets in.
               </p>
 
               <h3 className="text-lg font-medium text-white mt-8 mb-3">How Slippage is Calculated</h3>
@@ -430,6 +433,34 @@ export default function DocsPage() {
                 There are no maker or taker fees. Total cost is purely the size-adjusted spread 
                 between the OLP{"'"}s bid and ask at your order size.
               </p>
+            </Section>
+
+            {/* Ondo */}
+            <Section id="ondo" title="Ondo" badge="Order Book">
+              <p>
+                Ondo runs an order-book perpetuals venue for tokenized real-world assets. It lists 
+                commodities (Gold, Silver, WTI Crude Oil) and US equities, with symbols carrying a 
+                <code className="text-[#D8F213] bg-white/5 px-1.5 py-0.5 rounded mx-1">-USD.P</code> 
+                suffix (e.g., XAU-USD.P).
+              </p>
+
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">How Slippage is Calculated</h3>
+              <p>
+                Same order book methodology as other CLOB venues. We fetch the order book and simulate 
+                your order walking through each price level to derive the average execution price and 
+                slippage in basis points.
+              </p>
+
+              <h3 className="text-lg font-medium text-white mt-8 mb-3">Fee Structure</h3>
+              <p>
+                Ondo publishes separate maker and taker rates, with the close fee matching the open fee. 
+                Taker fees are typically around 3.5 bps and maker fees around 1.5 bps.
+              </p>
+
+              <InfoBox title="Liquidity Depth">
+                Ondo{"'"}s order books can be thin for larger orders. When the book can{"'"}t absorb 
+                your full size, we mark the trade as a partial fill.
+              </InfoBox>
             </Section>
 
             {/* Comparison Table */}
@@ -452,6 +483,7 @@ export default function DocsPage() {
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">EdgeX</th>
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">GRVT</th>
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">Variational</th>
+                      <th className="text-center py-2.5 px-3 text-[#666] font-medium">Ondo</th>
                     </tr>
                   </thead>
                   <tbody className="text-[#999]">
@@ -466,6 +498,7 @@ export default function DocsPage() {
                       <td className="py-3 px-4 text-center">Order Book</td>
                       <td className="py-3 px-4 text-center">Order Book</td>
                       <td className="py-3 px-4 text-center">Quote (RFQ)</td>
+                      <td className="py-3 px-4 text-center">Order Book</td>
                     </tr>
                     <tr className="border-b border-white/5">
                       <td className="py-2.5 px-3 text-white font-medium">Spread Applied</td>
@@ -478,6 +511,7 @@ export default function DocsPage() {
                       <td className="py-2.5 px-3 text-center">2× round trip</td>
                       <td className="py-2.5 px-3 text-center">2× round trip</td>
                       <td className="py-2.5 px-3 text-center">Quoted spread</td>
+                      <td className="py-2.5 px-3 text-center">2× round trip</td>
                     </tr>
                     <tr className="border-b border-white/5">
                       <td className="py-2.5 px-3 text-white font-medium">Close Fee</td>
@@ -490,6 +524,7 @@ export default function DocsPage() {
                       <td className="py-2.5 px-3 text-center">= Open fee</td>
                       <td className="py-2.5 px-3 text-center">= Open fee</td>
                       <td className="py-2.5 px-3 text-center text-[#D8F213]">No fees</td>
+                      <td className="py-2.5 px-3 text-center">= Open fee</td>
                     </tr>
                     <tr className="border-b border-white/5">
                       <td className="py-2.5 px-3 text-white font-medium">Fee Discounts</td>
@@ -502,6 +537,7 @@ export default function DocsPage() {
                       <td className="py-2.5 px-3 text-center">—</td>
                       <td className="py-2.5 px-3 text-center">—</td>
                       <td className="py-2.5 px-3 text-center text-[#D8F213]">Zero fees</td>
+                      <td className="py-2.5 px-3 text-center">—</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 text-white">Liquidity Check</td>
@@ -514,6 +550,7 @@ export default function DocsPage() {
                       <td className="py-3 px-4 text-center">Book depth</td>
                       <td className="py-3 px-4 text-center">Book depth</td>
                       <td className="py-3 px-4 text-center">Quote buckets</td>
+                      <td className="py-3 px-4 text-center">Book depth</td>
                     </tr>
                   </tbody>
                 </table>
@@ -540,27 +577,29 @@ export default function DocsPage() {
                       <th className="text-center py-3 px-4 text-[#666] font-medium">EdgeX</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">GRVT</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Variational</th>
+                      <th className="text-center py-3 px-4 text-[#666] font-medium">Ondo</th>
                     </tr>
                   </thead>
                   <tbody className="text-[#999]">
                     {[
-                      { asset: "Gold (XAU)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "✓" },
-                      { asset: "Silver (XAG)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "✓" },
-                      { asset: "WTI Crude Oil",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "✓" },
-                      { asset: "Brent Crude Oil",    hl: "✓", lt: "—", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "✓" },
-                      { asset: "EUR/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—" },
-                      { asset: "GBP/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—", va: "—" },
-                      { asset: "USD/JPY",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—" },
-                      { asset: "Apple (AAPL)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
-                      { asset: "Microsoft (MSFT)",   hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—" },
-                      { asset: "Google (GOOG)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
-                      { asset: "Amazon (AMZN)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "—" },
-                      { asset: "Meta (META)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—" },
-                      { asset: "Nvidia (NVDA)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
-                      { asset: "Tesla (TSLA)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "—" },
-                      { asset: "S&P 500 (SPY)",      hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
-                      { asset: "Nasdaq 100 (QQQ)",   hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "—" },
-                      { asset: "Coinbase (COIN)",    hl: "✓", lt: "—", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓", va: "—" },
+                      { asset: "Gold (XAU)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "✓", on: "✓" },
+                      { asset: "Silver (XAG)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "✓", va: "✓", on: "✓" },
+                      { asset: "WTI Crude Oil",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "✓", on: "✓" },
+                      { asset: "Brent Crude Oil",    hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "✓", on: "—" },
+                      { asset: "EUR/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—", on: "—" },
+                      { asset: "GBP/USD",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—", va: "—", on: "—" },
+                      { asset: "USD/JPY",            hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "—", gr: "—", va: "—", on: "—" },
+                      { asset: "Apple (AAPL)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "✓", gr: "—", va: "—", on: "✓" },
+                      { asset: "Microsoft (MSFT)",   hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "—", va: "—", on: "✓" },
+                      { asset: "Google (GOOG)",      hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "✓", gr: "—", va: "—", on: "✓" },
+                      { asset: "Amazon (AMZN)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "✓", gr: "✓", va: "—", on: "✓" },
+                      { asset: "Meta (META)",        hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "✓", gr: "—", va: "—", on: "✓" },
+                      { asset: "Nvidia (NVDA)",      hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "✓", gr: "—", va: "✓", on: "✓" },
+                      { asset: "Tesla (TSLA)",       hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "—", eg: "✓", gr: "✓", va: "✓", on: "✓" },
+                      { asset: "S&P 500 (SPY)",      hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "✓", on: "—" },
+                      { asset: "Nasdaq 100 (QQQ)",   hl: "✓", lt: "✓", as: "✓", av: "✓", os: "✓", ex: "✓", eg: "✓", gr: "—", va: "✓", on: "—" },
+                      { asset: "Coinbase (COIN)",    hl: "✓", lt: "✓", as: "—", av: "✓", os: "✓", ex: "—", eg: "✓", gr: "✓", va: "✓", on: "✓" },
+                      { asset: "SpaceX (SPCX)",      hl: "✓", lt: "—", as: "✓", av: "✓", os: "—", ex: "✓", eg: "—", gr: "—", va: "✓", on: "✓" },
                     ].map((row, i) => (
                       <tr key={i} className="border-b border-white/5">
                         <td className="py-3 px-4 text-white">{row.asset}</td>
@@ -573,6 +612,7 @@ export default function DocsPage() {
                         <td className="py-3 px-4 text-center">{row.eg === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
                         <td className="py-3 px-4 text-center">{row.gr === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
                         <td className="py-3 px-4 text-center">{row.va === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
+                        <td className="py-3 px-4 text-center">{row.on === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
                       </tr>
                     ))}
                   </tbody>

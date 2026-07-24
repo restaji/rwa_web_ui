@@ -54,6 +54,7 @@ export const ASSETS: Asset[] = [
   { id: "SPY",  symbol: "SPY/USD",  name: "S&P 500",     category: "Indices" },
   { id: "QQQ",  symbol: "QQQ/USD",  name: "Nasdaq 100",  category: "Indices" },
   { id: "COIN", symbol: "COIN/USD", name: "Coinbase",    category: "Equities" },
+  { id: "SPCX", symbol: "SPCX/USD", name: "SpaceX",      category: "Equities" },
 ];
 
 export const ORDER_SIZES = [

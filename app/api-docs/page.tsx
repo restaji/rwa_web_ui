@@ -245,7 +245,8 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
                 { name: "extended", type: "object | null", description: "Extended exchange result" },
                 { name: "edgex", type: "object | null", description: "EdgeX exchange result" },
                 { name: "grvt", type: "object | null", description: "GRVT exchange result" },
-                { name: "variational", type: "object | null", description: "Variational (Omni) exchange result — commodities only" },
+                { name: "variational", type: "object | null", description: "Variational (Omni) exchange result — commodities, NVDA, TSLA, SPY, QQQ, COIN, and SPCX; null when no live quote" },
+                { name: "ondo", type: "object | null", description: "Ondo exchange result — commodities and US equities" },
               ]} />
             </Section>
 
@@ -339,7 +340,8 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
     "extended": "XAU-USD",
     "edgex": "XAU-USD",
     "grvt": "XAU_USDT",
-    "variational": "XAU"
+    "variational": "XAU",
+    "ondo": "XAU-USD.P"
   },
   "hyperliquid": {
     "exchange": "hyperliquid",
@@ -390,7 +392,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
     "mid_price": 5137.39,
     "timestamp": 1771947189.58
   }
-  // ... other exchanges (lighter, aster, avantis, extended, edgex, grvt, variational)
+  // ... other exchanges (lighter, aster, avantis, extended, edgex, grvt, variational, ondo)
 }`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
@@ -435,7 +437,7 @@ print(f"Best venue: {data['winner']}")
 print(f"Total cost: {data['winner_cost_bps']:.2f} bps")
 
 # Get individual exchange costs
-for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extended', 'edgex', 'grvt', 'variational']:
+for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extended', 'edgex', 'grvt', 'variational', 'ondo']:
     if data.get(exchange):
         cost = data[exchange].get('total_cost_bps', 'N/A')
         print(f"  {exchange}: {cost} bps")`}
@@ -516,6 +518,8 @@ for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extend
                     {[
                       { key: "XAU", name: "Gold", category: "Commodities" },
                       { key: "XAG", name: "Silver", category: "Commodities" },
+                      { key: "WTI", name: "WTI Crude Oil", category: "Commodities" },
+                      { key: "BRENT", name: "Brent Crude Oil", category: "Commodities" },
                       { key: "EURUSD", name: "Euro / US Dollar", category: "Forex" },
                       { key: "GBPUSD", name: "British Pound / US Dollar", category: "Forex" },
                       { key: "USDJPY", name: "US Dollar / Japanese Yen", category: "Forex" },
@@ -529,6 +533,7 @@ for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extend
                       { key: "SPY", name: "S&P 500 ETF", category: "Indices" },
                       { key: "QQQ", name: "Nasdaq 100 ETF", category: "Indices" },
                       { key: "COIN", name: "Coinbase Global Inc.", category: "Equities" },
+                      { key: "SPCX", name: "SpaceX", category: "Equities" },
                     ].map((asset, i) => (
                       <tr key={i} className="border-b border-white/5">
                         <td className="py-3 px-4">
