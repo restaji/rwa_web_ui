@@ -7,10 +7,8 @@
 
 import { Asset, ASSETS, Venue, categorizeAsset } from "./mockVenues";
 
-const API_BASE = (
-    process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz"
-).replace(/\/+$/, "");
-
+const API_BASE =
+    process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz";
 
 const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     hyperliquid: { name: "Hyperliquid", logo: "/logos/hyperliquid.png" },
@@ -140,7 +138,13 @@ function toAsset(raw: BackendAsset): Asset {
     const known = ASSET_BY_ID.get(raw.key);
     if (known) return known;
 
-    const pair = raw.name || (raw.symbol ? `${raw.symbol}/USD` : raw.key);
+    let pair = raw.key;
+    if (raw.name) {
+        pair = raw.name;
+    } else if (raw.symbol) {
+        pair = `${raw.symbol}/USD`;
+    }
+
     return {
         id: raw.key,
         symbol: pair,
@@ -151,7 +155,7 @@ function toAsset(raw: BackendAsset): Asset {
 
 function isComparableAsset(exchanges: BackendAsset["exchanges"]): boolean {
     const listed = Object.entries(exchanges ?? {})
-        .filter(([key, listed]) => listed && EXCHANGE_KEYS.includes(key))
+        .filter(([key, isListed]) => isListed && EXCHANGE_KEYS.includes(key))
         .map(([key]) => key);
     const otherVenues = listed.filter((key) => !AVANTIS_KEYS.has(key));
     // Need at least one non-Avantis venue so there is something to compare

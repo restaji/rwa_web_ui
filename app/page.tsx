@@ -100,9 +100,10 @@ export default function FeeAnalysisPage() {
       .then((list) => {
         if (controller.signal.aborted) return;
         setAssets(list);
-        setSelectedAsset((current) =>
-          list.some((asset) => asset.id === current) ? current : list[0]?.id ?? ""
-        );
+        setSelectedAsset((current) => {
+          if (list.some((asset) => asset.id === current)) return current;
+          return list[0]?.id ?? "";
+        });
         if (list.length === 0) {
           setError("No comparable assets returned from the backend");
           setIsLoading(false);

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, ArrowLeft, BookOpen, Calculator, Building2, Info } from "lucide-react";
+import { ChevronRight, ArrowLeft, BookOpen, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_SECTIONS = [
@@ -439,55 +439,27 @@ export default function DocsPage() {
             {/* Ondo */}
             <Section id="ondo" title="Ondo" badge="Order Book">
               <p>
-                Ondo runs an order-book perpetuals venue for tokenized real-world assets. It lists 
-                commodities (Gold, Silver, WTI Crude Oil) and US equities, with symbols carrying a 
-                <code className="text-[#D8F213] bg-white/5 px-1.5 py-0.5 rounded mx-1">-USD.P</code> 
-                suffix (e.g., XAU-USD.P).
+                Ondo runs an order-book perpetuals venue for tokenized real-world assets. It lists
+                commodities (Gold, Silver, WTI Crude Oil) and US equities, with symbols carrying a{" "}
+                <code className="text-[#D8F213] bg-white/5 px-1.5 py-0.5 rounded mx-1">-USD.P</code>
+                {" "}suffix (e.g., XAU-USD.P).
               </p>
 
-              <h3 className="text-lg font-medium text-white mt-8 mb-3">How Slippage is Calculated</h3>
-              <p>
-                Same order book methodology as other CLOB venues. We fetch the order book and simulate 
-                your order walking through each price level to derive the average execution price and 
-                slippage in basis points.
-              </p>
-
-              <h3 className="text-lg font-medium text-white mt-8 mb-3">Fee Structure</h3>
-              <p>
-                Ondo publishes separate maker and taker rates, with the close fee matching the open fee. 
-                Taker fees are typically around 3.5 bps and maker fees around 1.5 bps.
-              </p>
-
-              <InfoBox title="Liquidity Depth">
-                Ondo{"'"}s order books can be thin for larger orders. When the book can{"'"}t absorb 
-                your full size, we mark the trade as a partial fill.
-              </InfoBox>
+              <ClobSlippageSection />
+              <ClobFeeSection venue="Ondo" takerBps="3.5" makerBps="1.5" />
+              <ThinBookNote venue="Ondo" />
             </Section>
 
             {/* Pacifica */}
             <Section id="pacifica" title="Pacifica" badge="Order Book">
               <p>
-                Pacifica is an order-book perpetuals DEX offering commodities and US equities. It uses 
+                Pacifica is an order-book perpetuals DEX offering commodities and US equities. It uses
                 plain asset tickers as symbols (e.g., XAU) and prices against a maintained best bid/ask.
               </p>
 
-              <h3 className="text-lg font-medium text-white mt-8 mb-3">How Slippage is Calculated</h3>
-              <p>
-                Same order book methodology as other CLOB venues. We fetch the order book and simulate 
-                your order walking through each price level to derive the average execution price and 
-                slippage in basis points.
-              </p>
-
-              <h3 className="text-lg font-medium text-white mt-8 mb-3">Fee Structure</h3>
-              <p>
-                Pacifica publishes separate maker and taker rates, with the close fee matching the open fee. 
-                Taker fees are typically around 4 bps and maker fees around 1.5 bps.
-              </p>
-
-              <InfoBox title="Liquidity Depth">
-                Pacifica{"'"}s order books can be thin for larger orders. When the book can{"'"}t absorb 
-                your full size, we mark the trade as a partial fill.
-              </InfoBox>
+              <ClobSlippageSection />
+              <ClobFeeSection venue="Pacifica" takerBps="4" makerBps="1.5" />
+              <ThinBookNote venue="Pacifica" />
             </Section>
 
             {/* Comparison Table */}
@@ -657,20 +629,20 @@ export default function DocsPage() {
                       { asset: "Netflix (NFLX)", hl: "✓", lt: "—", as: "✓", av: "✓", os: "✓", ex: "—", eg: "—", gr: "✓", va: "—", on: "✓", pa: "—" },
                       { asset: "CoreWeave (CRWV)", hl: "✓", lt: "✓", as: "✓", av: "✓", os: "—", ex: "✓", eg: "✓", gr: "✓", va: "—", on: "✓", pa: "—" },
                       { asset: "SK Hynix (SKHY)", hl: "✓", lt: "✓", as: "—", av: "✓", os: "—", ex: "✓", eg: "✓", gr: "✓", va: "—", on: "✓", pa: "✓" },
-                    ].map((row, i) => (
-                      <tr key={i} className="border-b border-white/5">
+                    ].map((row) => (
+                      <tr key={row.asset} className="border-b border-white/5">
                         <td className="py-3 px-4 text-white">{row.asset}</td>
-                        <td className="py-3 px-4 text-center">{row.hl === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.lt === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.as === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.av === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.os === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.ex === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.eg === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.gr === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.va === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.on === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
-                        <td className="py-3 px-4 text-center">{row.pa === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}</td>
+                        <CoverageMark value={row.hl} />
+                        <CoverageMark value={row.lt} />
+                        <CoverageMark value={row.as} />
+                        <CoverageMark value={row.av} />
+                        <CoverageMark value={row.os} />
+                        <CoverageMark value={row.ex} />
+                        <CoverageMark value={row.eg} />
+                        <CoverageMark value={row.gr} />
+                        <CoverageMark value={row.va} />
+                        <CoverageMark value={row.on} />
+                        <CoverageMark value={row.pa} />
                       </tr>
                     ))}
                   </tbody>
@@ -781,6 +753,54 @@ function InfoBox({ title, children }: { title: string; children: React.ReactNode
         </div>
       </div>
     </div>
+  );
+}
+
+function ClobSlippageSection() {
+  return (
+    <>
+      <h3 className="text-lg font-medium text-white mt-8 mb-3">How Slippage is Calculated</h3>
+      <p>
+        Same order book methodology as other CLOB venues. We fetch the order book and simulate
+        your order walking through each price level to derive the average execution price and
+        slippage in basis points.
+      </p>
+    </>
+  );
+}
+
+function ClobFeeSection({
+  venue,
+  takerBps,
+  makerBps,
+}: {
+  venue: string;
+  takerBps: string;
+  makerBps: string;
+}) {
+  return (
+    <>
+      <h3 className="text-lg font-medium text-white mt-8 mb-3">Fee Structure</h3>
+      <p>
+        {`${venue} publishes separate maker and taker rates, with the close fee matching the open fee. Taker fees are typically around ${takerBps} bps and maker fees around ${makerBps} bps.`}
+      </p>
+    </>
+  );
+}
+
+function ThinBookNote({ venue }: { venue: string }) {
+  return (
+    <InfoBox title="Liquidity Depth">
+      {`${venue}'s order books can be thin for larger orders. When the book can't absorb your full size, we mark the trade as a partial fill.`}
+    </InfoBox>
+  );
+}
+
+function CoverageMark({ value }: { value: string }) {
+  return (
+    <td className="py-3 px-4 text-center">
+      {value === "✓" ? <span className="text-[#D8F213]">✓</span> : "—"}
+    </td>
   );
 }
 

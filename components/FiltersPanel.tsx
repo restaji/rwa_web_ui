@@ -6,6 +6,16 @@ import { ChevronDown, Search } from "lucide-react";
 import { ORDER_SIZES, Asset, AssetCategory } from "@/lib/mockVenues";
 import { cn } from "@/lib/utils";
 
+type CategoryTab = { id: AssetCategory | "All"; label: string };
+
+const CATEGORY_TABS: CategoryTab[] = [
+  { id: "All", label: "All" },
+  { id: "Equities", label: "Equities" },
+  { id: "Indices", label: "Indices" },
+  { id: "Commodities", label: "Commodities" },
+  { id: "Forex", label: "Forex" },
+];
+
 interface FiltersPanelProps {
   assets: Asset[];
   selectedAsset: string;
@@ -71,6 +81,12 @@ export function FiltersPanel({
   };
 
   const currentAsset = assets.find((a) => a.id === selectedAsset);
+  let pairLabel = "Select";
+  if (currentAsset?.symbol) {
+    pairLabel = currentAsset.symbol;
+  } else if (assets.length === 0) {
+    pairLabel = "Loading…";
+  }
   const filteredAssets = assets.filter((a) => {
     const q = search.toLowerCase();
     const matchesSearch =
@@ -81,15 +97,7 @@ export function FiltersPanel({
     return matchesSearch && matchesCategory;
   });
 
-  const CATEGORIES = (
-    [
-      { id: "All", label: "All" },
-      { id: "Equities", label: "Equities" },
-      { id: "Indices", label: "Indices" },
-      { id: "Commodities", label: "Commodities" },
-      { id: "Forex", label: "Forex" },
-    ] as Array<{ id: AssetCategory | "All"; label: string }>
-  ).filter(
+  const CATEGORIES = CATEGORY_TABS.filter(
     (category) =>
       category.id === "All" || assets.some((asset) => asset.category === category.id)
   );
@@ -108,12 +116,12 @@ export function FiltersPanel({
         {/* Pair */}
         <div className="relative" ref={dropdownRef}>
           <button
-            onClick={() => assets.length > 0 && setIsOpen(!isOpen)}
+            onClick={() => setIsOpen((open) => !open)}
             disabled={assets.length === 0}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity disabled:opacity-50"
           >
             <span className="text-2xl font-semibold text-white">
-              {currentAsset?.symbol || (assets.length === 0 ? "Loading…" : "Select")}
+              {pairLabel}
             </span>
             <ChevronDown className={cn("w-5 h-5 text-[#666] transition-transform", isOpen && "rotate-180")} />
           </button>

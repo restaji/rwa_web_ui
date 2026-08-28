@@ -559,8 +559,8 @@ for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extend
                       { key: "NFLX", name: "Netflix Inc.", category: "Equities" },
                       { key: "CRWV", name: "CoreWeave Inc.", category: "Equities" },
                       { key: "SKHY", name: "SK Hynix ADS", category: "Equities" },
-                    ].map((asset, i) => (
-                      <tr key={i} className="border-b border-white/5">
+                    ].map((asset) => (
+                      <tr key={asset.key} className="border-b border-white/5">
                         <td className="py-3 px-4">
                           <code className="text-[#D8F213] bg-white/5 px-1.5 py-0.5 rounded">
                             {asset.key}
@@ -666,8 +666,8 @@ function ParamTable({ params }: { params: Array<{ name: string; type: string; re
           </tr>
         </thead>
         <tbody className="text-[#999]">
-          {params.map((param, i) => (
-            <tr key={i} className="border-b border-white/5">
+          {params.map((param) => (
+            <tr key={param.name} className="border-b border-white/5">
               <td className="py-3 px-4">
                 <code className="text-[#D8F213] bg-white/5 px-1.5 py-0.5 rounded">{param.name}</code>
                 {param.required && <span className="text-red-400 ml-2 text-xs">required</span>}
