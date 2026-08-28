@@ -3,10 +3,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Search } from "lucide-react";
-import { ASSETS, ORDER_SIZES, AssetCategory } from "@/lib/mockVenues";
+import { ORDER_SIZES, Asset, AssetCategory } from "@/lib/mockVenues";
 import { cn } from "@/lib/utils";
 
 interface FiltersPanelProps {
+  assets: Asset[];
   selectedAsset: string;
   setSelectedAsset: (asset: string) => void;
   direction: "long" | "short";
@@ -15,11 +16,10 @@ interface FiltersPanelProps {
   setOrderSize: (size: number) => void;
   customSize: string;
   setCustomSize: (size: string) => void;
-  onApply: () => void;
-  isLoading: boolean;
 }
 
 export function FiltersPanel({
+  assets,
   selectedAsset,
   setSelectedAsset,
   direction,
@@ -28,22 +28,11 @@ export function FiltersPanel({
   setOrderSize,
   customSize,
   setCustomSize,
-  onApply,
 }: FiltersPanelProps) {
-  const isFirstRender = useRef(true);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<AssetCategory | "All">("All");
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Auto-apply when filters change (skip first render)
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    onApply();
-  }, [selectedAsset, direction, orderSize]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -81,22 +70,29 @@ export function FiltersPanel({
     return value * multiplier;
   };
 
-  const currentAsset = ASSETS.find((a) => a.id === selectedAsset);
-  const filteredAssets = ASSETS.filter((a) => {
+  const currentAsset = assets.find((a) => a.id === selectedAsset);
+  const filteredAssets = assets.filter((a) => {
+    const q = search.toLowerCase();
     const matchesSearch =
-      a.symbol.toLowerCase().includes(search.toLowerCase()) ||
-      a.name.toLowerCase().includes(search.toLowerCase());
+      a.id.toLowerCase().includes(q) ||
+      a.symbol.toLowerCase().includes(q) ||
+      a.name.toLowerCase().includes(q);
     const matchesCategory = activeCategory === "All" || a.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const CATEGORIES: Array<{ id: AssetCategory | "All"; label: string }> = [
-    { id: "All", label: "All" },
-    { id: "Equities", label: "Equities" },
-    { id: "Indices", label: "Indices" },
-    { id: "Commodities", label: "Commodities" },
-    { id: "Forex", label: "Forex" },
-  ];
+  const CATEGORIES = (
+    [
+      { id: "All", label: "All" },
+      { id: "Equities", label: "Equities" },
+      { id: "Indices", label: "Indices" },
+      { id: "Commodities", label: "Commodities" },
+      { id: "Forex", label: "Forex" },
+    ] as Array<{ id: AssetCategory | "All"; label: string }>
+  ).filter(
+    (category) =>
+      category.id === "All" || assets.some((asset) => asset.category === category.id)
+  );
 
   const isCustomActive = customSize !== "" && ORDER_SIZES.every((s) => s.value !== orderSize);
 
@@ -112,11 +108,12 @@ export function FiltersPanel({
         {/* Pair */}
         <div className="relative" ref={dropdownRef}>
           <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            onClick={() => assets.length > 0 && setIsOpen(!isOpen)}
+            disabled={assets.length === 0}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity disabled:opacity-50"
           >
             <span className="text-2xl font-semibold text-white">
-              {currentAsset?.symbol || "Select"}
+              {currentAsset?.symbol || (assets.length === 0 ? "Loading…" : "Select")}
             </span>
             <ChevronDown className={cn("w-5 h-5 text-[#666] transition-transform", isOpen && "rotate-180")} />
           </button>
@@ -155,7 +152,7 @@ export function FiltersPanel({
               </div>
 
               {/* Asset list */}
-              <div className="max-h-64 overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto">
                 {filteredAssets.length === 0 ? (
                   <div className="px-3 py-4 text-sm text-[#666] text-center">No pairs found</div>
                 ) : (

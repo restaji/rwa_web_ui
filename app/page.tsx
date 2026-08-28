@@ -15,14 +15,15 @@ import {
   BestExecutionCardSkeleton,
 } from "@/components/BestExecutionCard";
 import { VenueGrid, CostUnit } from "@/components/VenueGrid";
-import { Venue, ASSETS } from "@/lib/mockVenues";
-import { fetchComparison } from "@/lib/api";
+import { Venue, Asset } from "@/lib/mockVenues";
+import { fetchAssets, fetchComparison } from "@/lib/api";
 import { calculateAdjustedTotalCostBps, cn } from "@/lib/utils";
 
 const AUTO_REFRESH_INTERVAL = 10000; // 10 seconds
 
 export default function FeeAnalysisPage() {
-  const [selectedAsset, setSelectedAsset] = useState(ASSETS[0].id);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [selectedAsset, setSelectedAsset] = useState("");
   const [direction, setDirection] = useState<"long" | "short">("long");
   const [orderSize, setOrderSize] = useState(100000);
   const [customSize, setCustomSize] = useState("");
@@ -47,6 +48,8 @@ export default function FeeAnalysisPage() {
 
   const handleApply = useCallback(
     async (isManualRefresh = false) => {
+      if (!selectedAsset) return;
+
       // Cancel any in-flight request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -90,13 +93,38 @@ export default function FeeAnalysisPage() {
     [selectedAsset, direction, orderSize],
   );
 
-  // Load initial data on mount
+  // Load comparable assets from the backend, then keep the selection in that list
   useEffect(() => {
-    handleApply();
+    const controller = new AbortController();
+    fetchAssets(controller.signal)
+      .then((list) => {
+        if (controller.signal.aborted) return;
+        setAssets(list);
+        setSelectedAsset((current) =>
+          list.some((asset) => asset.id === current) ? current : list[0]?.id ?? ""
+        );
+        if (list.length === 0) {
+          setError("No comparable assets returned from the backend");
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (err instanceof Error && err.name === "AbortError") return;
+        setError(err instanceof Error ? err.message : "Failed to load assets");
+        setIsLoading(false);
+      });
+    return () => controller.abort();
   }, []);
+
+  // Fetch comparison whenever the selected backend asset or filters change
+  useEffect(() => {
+    if (!selectedAsset) return;
+    handleApply();
+  }, [handleApply]);
 
   // Auto-refresh every 10 seconds
   useEffect(() => {
+    if (!selectedAsset) return;
     const interval = setInterval(() => {
       handleApply(true);
     }, AUTO_REFRESH_INTERVAL);
@@ -205,6 +233,7 @@ export default function FeeAnalysisPage() {
         {/* Filters */}
         <section className="mb-8">
           <FiltersPanel
+            assets={assets}
             selectedAsset={selectedAsset}
             setSelectedAsset={setSelectedAsset}
             direction={direction}
@@ -213,8 +242,6 @@ export default function FeeAnalysisPage() {
             setOrderSize={setOrderSize}
             customSize={customSize}
             setCustomSize={setCustomSize}
-            onApply={() => handleApply()}
-            isLoading={isLoading}
           />
         </section>
 

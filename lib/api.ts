@@ -5,11 +5,12 @@
  * Venue[] shape expected by the UI components.
  */
 
-import { Venue } from "./mockVenues";
+import { Asset, ASSETS, Venue, categorizeAsset } from "./mockVenues";
 
-const API_BASE =
+const API_BASE = (
     process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz"
-    
+).replace(/\/+$/, "");
+
 
 const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     hyperliquid: { name: "Hyperliquid", logo: "/logos/hyperliquid.png" },
@@ -22,10 +23,24 @@ const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     edgex: { name: "EdgeX", logo: "/logos/edgex.png" },
     grvt: { name: "GRVT", logo: "/logos/grvt.png" },
     variational: { name: "Variational", logo: "/logos/variational.png" },
+    ondo: { name: "Ondo Perps", logo: "/logos/ondo.png" },
+    pacifica: { name: "Pacifica", logo: "/logos/pacifica.png" },
 };
 
 const EXCHANGE_KEYS = Object.keys(EXCHANGE_META);
+const AVANTIS_KEYS = new Set(["avantis", "avantis_x"]);
+const ASSET_BY_ID = new Map(ASSETS.map((asset) => [asset.id, asset]));
 
+interface BackendAsset {
+    key: string;
+    name?: string;
+    symbol?: string;
+    exchanges?: Record<string, boolean | null>;
+}
+
+interface AssetsAPIResponse {
+    assets?: BackendAsset[];
+}
 
 interface ExchangeResultSide {
     filled?: boolean;
@@ -75,6 +90,8 @@ interface CompareAPIResponse {
     edgex?: ExchangeResult | null;
     grvt?: ExchangeResult | null;
     variational?: ExchangeResult | null;
+    ondo?: ExchangeResult | null;
+    pacifica?: ExchangeResult | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -117,6 +134,45 @@ function toVenue(
         fundingFee24hLongPct: data.holding_fee_24h_long_pct,
         fundingFee24hShortPct: data.holding_fee_24h_short_pct,
     };
+}
+
+function toAsset(raw: BackendAsset): Asset {
+    const known = ASSET_BY_ID.get(raw.key);
+    if (known) return known;
+
+    const pair = raw.name || (raw.symbol ? `${raw.symbol}/USD` : raw.key);
+    return {
+        id: raw.key,
+        symbol: pair,
+        name: raw.symbol || raw.key,
+        category: categorizeAsset(raw.key),
+    };
+}
+
+function isComparableAsset(exchanges: BackendAsset["exchanges"]): boolean {
+    const listed = Object.entries(exchanges ?? {})
+        .filter(([key, listed]) => listed && EXCHANGE_KEYS.includes(key))
+        .map(([key]) => key);
+    const otherVenues = listed.filter((key) => !AVANTIS_KEYS.has(key));
+    // Need at least one non-Avantis venue so there is something to compare
+    return otherVenues.length >= 1;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Public: fetch comparable assets from Python API                   */
+/* ------------------------------------------------------------------ */
+export async function fetchAssets(signal?: AbortSignal): Promise<Asset[]> {
+    const res = await fetch(`${API_BASE}/api/assets`, { cache: "no-store", signal });
+
+    if (!res.ok) {
+        throw new Error(`API error ${res.status}: ${await res.text()}`);
+    }
+
+    const json: AssetsAPIResponse = await res.json();
+
+    return (json.assets ?? [])
+        .filter((asset) => isComparableAsset(asset.exchanges))
+        .map(toAsset);
 }
 
 /* ------------------------------------------------------------------ */

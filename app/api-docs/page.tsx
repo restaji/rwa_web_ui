@@ -245,8 +245,9 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
                 { name: "extended", type: "object | null", description: "Extended exchange result" },
                 { name: "edgex", type: "object | null", description: "EdgeX exchange result" },
                 { name: "grvt", type: "object | null", description: "GRVT exchange result" },
-                { name: "variational", type: "object | null", description: "Variational (Omni) exchange result — commodities, NVDA, TSLA, SPY, QQQ, COIN, and SPCX; null when no live quote" },
+                { name: "variational", type: "object | null", description: "Variational (Omni) exchange result — commodities and select equities/ETFs (NVDA, TSLA, AMD, US500, US100, COIN, SPCX); null when no live quote" },
                 { name: "ondo", type: "object | null", description: "Ondo exchange result — commodities and US equities" },
+                { name: "pacifica", type: "object | null", description: "Pacifica exchange result — commodities, select forex, and US equities" },
               ]} />
             </Section>
 
@@ -341,7 +342,8 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
     "edgex": "XAU-USD",
     "grvt": "XAU_USDT",
     "variational": "XAU",
-    "ondo": "XAU-USD.P"
+    "ondo": "XAU-USD.P",
+    "pacifica": "XAU"
   },
   "hyperliquid": {
     "exchange": "hyperliquid",
@@ -392,7 +394,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
     "mid_price": 5137.39,
     "timestamp": 1771947189.58
   }
-  // ... other exchanges (lighter, aster, avantis, extended, edgex, grvt, variational, ondo)
+  // ... other exchanges (lighter, aster, avantis, extended, edgex, grvt, variational, ondo, pacifica)
 }`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
@@ -437,7 +439,7 @@ print(f"Best venue: {data['winner']}")
 print(f"Total cost: {data['winner_cost_bps']:.2f} bps")
 
 # Get individual exchange costs
-for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extended', 'edgex', 'grvt', 'variational', 'ondo']:
+for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extended', 'edgex', 'grvt', 'variational', 'ondo', 'pacifica']:
     if data.get(exchange):
         cost = data[exchange].get('total_cost_bps', 'N/A')
         print(f"  {exchange}: {cost} bps")`}
@@ -523,6 +525,12 @@ for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extend
                       { key: "EURUSD", name: "Euro / US Dollar", category: "Forex" },
                       { key: "GBPUSD", name: "British Pound / US Dollar", category: "Forex" },
                       { key: "USDJPY", name: "US Dollar / Japanese Yen", category: "Forex" },
+                      { key: "USDCAD", name: "US Dollar / Canadian Dollar", category: "Forex" },
+                      { key: "USDCHF", name: "US Dollar / Swiss Franc", category: "Forex" },
+                      { key: "AUDUSD", name: "Australian Dollar / US Dollar", category: "Forex" },
+                      { key: "NZDUSD", name: "New Zealand Dollar / US Dollar", category: "Forex" },
+                      { key: "USDKRW", name: "US Dollar / Korean Won", category: "Forex" },
+                      { key: "USDMXN", name: "US Dollar / Mexican Peso", category: "Forex" },
                       { key: "AAPL", name: "Apple Inc.", category: "Equities" },
                       { key: "MSFT", name: "Microsoft Corporation", category: "Equities" },
                       { key: "GOOG", name: "Alphabet Inc.", category: "Equities" },
@@ -530,10 +538,27 @@ for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extend
                       { key: "META", name: "Meta Platforms Inc.", category: "Equities" },
                       { key: "NVDA", name: "NVIDIA Corporation", category: "Equities" },
                       { key: "TSLA", name: "Tesla Inc.", category: "Equities" },
-                      { key: "SPY", name: "S&P 500 ETF", category: "Indices" },
-                      { key: "QQQ", name: "Nasdaq 100 ETF", category: "Indices" },
+                      { key: "US500", name: "S&P 500", category: "Indices" },
+                      { key: "US100", name: "Nasdaq 100", category: "Indices" },
                       { key: "COIN", name: "Coinbase Global Inc.", category: "Equities" },
+                      { key: "HOOD", name: "Robinhood Markets Inc.", category: "Equities" },
                       { key: "SPCX", name: "SpaceX", category: "Equities" },
+                      { key: "AMD", name: "Advanced Micro Devices Inc.", category: "Equities" },
+                      { key: "INTC", name: "Intel Corporation", category: "Equities" },
+                      { key: "MU", name: "Micron Technology Inc.", category: "Equities" },
+                      { key: "SNDK", name: "SanDisk Corporation", category: "Equities" },
+                      { key: "CBRS", name: "Cerebras Systems Inc.", category: "Equities" },
+                      { key: "EWY", name: "iShares MSCI South Korea ETF", category: "Indices" },
+                      { key: "BABA", name: "Alibaba Group", category: "Equities" },
+                      { key: "CRCL", name: "Circle Internet Group Inc.", category: "Equities" },
+                      { key: "MRVL", name: "Marvell Technology Inc.", category: "Equities" },
+                      { key: "MSTR", name: "Strategy Inc.", category: "Equities" },
+                      { key: "BB", name: "BlackBerry Ltd.", category: "Equities" },
+                      { key: "PLTR", name: "Palantir Technologies Inc.", category: "Equities" },
+                      { key: "AVGO", name: "Broadcom Inc.", category: "Equities" },
+                      { key: "NFLX", name: "Netflix Inc.", category: "Equities" },
+                      { key: "CRWV", name: "CoreWeave Inc.", category: "Equities" },
+                      { key: "SKHY", name: "SK Hynix ADS", category: "Equities" },
                     ].map((asset, i) => (
                       <tr key={i} className="border-b border-white/5">
                         <td className="py-3 px-4">
