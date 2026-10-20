@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Copy, Check, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { API_BASE } from "@/lib/api";
 
 const NAV_SECTIONS = [
   { id: "introduction", label: "Introduction" },
@@ -137,7 +138,7 @@ export default function APIDocsPage() {
               </p>
               <CodeBlock 
                 id="base-url-code"
-                code="https://api.realworldperps.xyz"
+                code={API_BASE}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
               />
@@ -153,7 +154,7 @@ export default function APIDocsPage() {
                 id="auth-code"
                 language="bash"
                 code={`# No authentication required
-curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"`}
+curl "${API_BASE}/api/compare/XAU?size=100000&direction=long"`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
               />
@@ -214,7 +215,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
               <CodeBlock 
                 id="example-request"
                 language="bash"
-                code={`curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long&order_type=taker"`}
+                code={`curl "${API_BASE}/api/compare/XAU?size=100000&direction=long&order_type=taker"`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
               />
@@ -405,7 +406,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
                 id="js-example"
                 language="javascript"
                 code={`const response = await fetch(
-  'https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long'
+  '${API_BASE}/api/compare/XAU?size=100000&direction=long'
 );
 const data = await response.json();
 
@@ -426,7 +427,7 @@ console.log(\`USD cost: $\${usdCost.toFixed(2)}\`);`}
                 code={`import requests
 
 response = requests.get(
-    'https://api.realworldperps.xyz/api/compare/XAU',
+    '${API_BASE}/api/compare/XAU',
     params={
         'size': 100000,
         'direction': 'long',

@@ -7,8 +7,8 @@
 
 import { Asset, ASSETS, Venue, categorizeAsset } from "./mockVenues";
 
-const API_BASE = (
-    process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz"
+export const API_BASE = (
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"
 ).replace(/\/+$/, "");
 
 const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
