@@ -13,7 +13,7 @@ const NAV_SECTIONS = [
   { id: "hyperliquid", label: "Hyperliquid", indent: true },
   { id: "lighter", label: "Lighter", indent: true },
   { id: "aster", label: "Aster", indent: true },
-  { id: "avantis", label: "Avantis", indent: true },
+  { id: "veranta", label: "Veranta", indent: true },
   { id: "ostium", label: "Ostium", indent: true },
   { id: "extended", label: "Extended", indent: true },
   { id: "edgex", label: "EdgeX", indent: true },
@@ -207,7 +207,7 @@ export default function DocsPage() {
                 />
                 <ExchangeCard 
                   name="Oracle-Based Exchanges" 
-                  exchanges={["Avantis", "Ostium"]}
+                  exchanges={["Veranta", "Ostium"]}
                   description="Trade against oracle prices with a dynamic spread. Slippage is modelled from the spread parameter rather than real order book depth."
                 />
                 <ExchangeCard 
@@ -288,21 +288,21 @@ export default function DocsPage() {
               </p>
             </Section>
 
-            {/* Avantis */}
-            <Section id="avantis" title="Avantis" badge="Simulated Order Book">
+            {/* Veranta */}
+            <Section id="veranta" title="Veranta" badge="Simulated Order Book">
               <p>
-                Avantis is an oracle-based perpetuals protocol on Base. Unlike order book exchanges, 
+                Veranta is an oracle-based perpetuals protocol on Base. Unlike order book exchanges,
                 you trade against a liquidity pool at oracle prices.
               </p>
 
               <h3 className="text-lg font-medium text-white mt-8 mb-3">How Spread is Calculated</h3>
               <p>
-                Spread can be either dynamic or static depending on the asset. Dynamic spreads are 
-                fetched from Avantis{"'"}s risk API and scale with position size.
+                Spread can be either dynamic or static depending on the asset. Dynamic spreads are
+                fetched from Veranta{"'"}s risk API and scale with position size.
               </p>
 
               <InfoBox title="One-Way Spread">
-                Avantis is unique — spread only applies when opening a position, not when closing. 
+                Veranta is unique — spread only applies when opening a position, not when closing.
                 This means the spread cost is half what it would be on other oracle-based exchanges.
               </InfoBox>
 
@@ -476,7 +476,7 @@ export default function DocsPage() {
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">Hyperliquid</th>
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">Lighter</th>
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">Aster</th>
-                      <th className="text-center py-2.5 px-3 text-[#666] font-medium">Avantis</th>
+                      <th className="text-center py-2.5 px-3 text-[#666] font-medium">Veranta</th>
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">Ostium</th>
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">Extended</th>
                       <th className="text-center py-2.5 px-3 text-[#666] font-medium">EdgeX</th>
@@ -576,7 +576,7 @@ export default function DocsPage() {
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Hyperliquid</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Lighter</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Aster</th>
-                      <th className="text-center py-3 px-4 text-[#666] font-medium">Avantis</th>
+                      <th className="text-center py-3 px-4 text-[#666] font-medium">Veranta</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Ostium</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">Extended</th>
                       <th className="text-center py-3 px-4 text-[#666] font-medium">EdgeX</th>

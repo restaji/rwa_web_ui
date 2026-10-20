@@ -15,8 +15,7 @@ const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     hyperliquid: { name: "Hyperliquid", logo: "/logos/hyperliquid.png" },
     lighter: { name: "Lighter", logo: "/logos/lighter.png" },
     aster: { name: "Aster", logo: "/logos/aster.jpg" },
-    avantis: { name: "Avantis", logo: "/logos/avantis.png" },
-    avantis_x: { name: "Avantis X", logo: "/logos/avantis.png" },
+    veranta: { name: "Veranta", logo: "/logos/veranta.png" },
     ostium: { name: "Ostium", logo: "/logos/ostium.webp" },
     extended: { name: "Extended", logo: "/logos/extended.png" },
     edgex: { name: "EdgeX", logo: "/logos/edgex.png" },
@@ -27,7 +26,7 @@ const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
 };
 
 const EXCHANGE_KEYS = Object.keys(EXCHANGE_META);
-const AVANTIS_KEYS = new Set(["avantis", "avantis_x"]);
+const VERANTA_KEYS = new Set(["avantis", "avantis_x", "veranta"]);
 const ASSET_BY_ID = new Map(ASSETS.map((asset) => [asset.id, asset]));
 
 interface BackendAsset {
@@ -64,7 +63,7 @@ interface ExchangeResult {
     // Symmetric holding fees (Hyperliquid, Lighter, Aster, Extended)
     holding_fee_1h_pct?: number;
     holding_fee_24h_pct?: number;
-    // Directional holding fees (Avantis, Ostium)
+    // Directional holding fees (Veranta, Ostium)
     holding_fee_1h_long_pct?: number;
     holding_fee_1h_short_pct?: number;
     holding_fee_24h_long_pct?: number;
@@ -82,6 +81,7 @@ interface CompareAPIResponse {
     hyperliquid?: ExchangeResult | null;
     lighter?: ExchangeResult | null;
     aster?: ExchangeResult | null;
+    veranta?: ExchangeResult | null;
     avantis?: ExchangeResult | null;
     avantis_x?: ExchangeResult | null;
     ostium?: ExchangeResult | null;
@@ -159,12 +159,21 @@ function toAsset(raw: BackendAsset): Asset {
     };
 }
 
+function isListedOnVeranta(exchanges: BackendAsset["exchanges"]): boolean {
+    return Object.entries(exchanges ?? {}).some(
+        ([key, isListed]) => Boolean(isListed) && VERANTA_KEYS.has(key)
+    );
+}
+
 function isComparableAsset(exchanges: BackendAsset["exchanges"]): boolean {
+    // This dashboard is Veranta-only: skip anything the venue does not list
+    if (!isListedOnVeranta(exchanges)) return false;
+
     const listed = Object.entries(exchanges ?? {})
         .filter(([key, isListed]) => isListed && EXCHANGE_KEYS.includes(key))
         .map(([key]) => key);
-    const otherVenues = listed.filter((key) => !AVANTIS_KEYS.has(key));
-    // Need at least one non-Avantis venue so there is something to compare
+    const otherVenues = listed.filter((key) => !VERANTA_KEYS.has(key));
+    // Need at least one non-Veranta venue so there is something to compare
     return otherVenues.length >= 1;
 }
 
@@ -212,10 +221,15 @@ export async function fetchComparison(
     const venues: Venue[] = [];
 
     for (const key of EXCHANGE_KEYS) {
-        const exData = json[key as keyof CompareAPIResponse] as
+        let exData = json[key as keyof CompareAPIResponse] as
             | ExchangeResult
             | null
             | undefined;
+
+        // Legacy API keys: Avantis / Avantis X were renamed to Veranta
+        if (key === "veranta" && !(exData && typeof exData === "object")) {
+            exData = json.avantis ?? json.avantis_x;
+        }
 
         if (exData && typeof exData === "object") {
             const hasInsufficientLiquidity =

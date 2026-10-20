@@ -240,7 +240,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
                 { name: "hyperliquid", type: "object | null", description: "Hyperliquid exchange result" },
                 { name: "lighter", type: "object | null", description: "Lighter exchange result" },
                 { name: "aster", type: "object | null", description: "Aster exchange result" },
-                { name: "avantis", type: "object | null", description: "Avantis exchange result" },
+                { name: "veranta", type: "object | null", description: "Veranta exchange result" },
                 { name: "ostium", type: "object | null", description: "Ostium exchange result" },
                 { name: "extended", type: "object | null", description: "Extended exchange result" },
                 { name: "edgex", type: "object | null", description: "EdgeX exchange result" },
@@ -271,7 +271,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
               <h3 className="text-lg font-medium text-white mt-6 mb-4">Holding Fee Fields</h3>
               <p className="text-[#999] mb-4">
                 Holding fees are based on the platform{"'"}s hourly funding/margin rate extrapolated to 24 hours. 
-                Symmetric exchanges return a single rate; directional exchanges (Avantis, Ostium) return separate long/short rates.
+                Symmetric exchanges return a single rate; directional exchanges (Veranta, Ostium) return separate long/short rates.
               </p>
               <ParamTable params={[
                 { name: "holding_fee_1h_pct", type: "number", description: "Hourly holding fee as % of notional (symmetric exchanges)" },
@@ -336,7 +336,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
     "hyperliquid": "xyz:GOLD",
     "lighter": "XAU",
     "aster": "XAUUSDT",
-    "avantis": "XAU",
+    "veranta": "XAU",
     "ostium": "XAUUSD",
     "extended": "XAU-USD",
     "edgex": "XAU-USD",
@@ -394,7 +394,7 @@ curl "https://api.realworldperps.xyz/api/compare/XAU?size=100000&direction=long"
     "mid_price": 5137.39,
     "timestamp": 1771947189.58
   }
-  // ... other exchanges (lighter, aster, avantis, extended, edgex, grvt, variational, ondo, pacifica)
+  // ... other exchanges (lighter, aster, veranta, extended, edgex, grvt, variational, ondo, pacifica)
 }`}
                 copyToClipboard={copyToClipboard}
                 copiedId={copiedId}
@@ -439,7 +439,7 @@ print(f"Best venue: {data['winner']}")
 print(f"Total cost: {data['winner_cost_bps']:.2f} bps")
 
 # Get individual exchange costs
-for exchange in ['hyperliquid', 'lighter', 'aster', 'avantis', 'ostium', 'extended', 'edgex', 'grvt', 'variational', 'ondo', 'pacifica']:
+for exchange in ['hyperliquid', 'lighter', 'aster', 'veranta', 'ostium', 'extended', 'edgex', 'grvt', 'variational', 'ondo', 'pacifica']:
     if data.get(exchange):
         cost = data[exchange].get('total_cost_bps', 'N/A')
         print(f"  {exchange}: {cost} bps")`}

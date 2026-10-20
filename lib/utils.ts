@@ -92,7 +92,7 @@ export function formatHoldingFeeBps(pct: number | undefined, unit: "bps" | "pct"
 /**
  * Returns the holding fee as a cost % for the selected direction.
  *
- * - For directional exchanges (Avantis, Ostium): use the direction-specific rate
+ * - For directional exchanges (Veranta, Ostium): use the direction-specific rate
  *   directly (positive = that side pays, negative = that side receives).
  * - For symmetric exchanges (HL, Lighter, Aster, Extended): the raw rate is
  *   expressed from the long perspective (positive = longs pay, shorts receive),

@@ -16,7 +16,7 @@ export interface Venue {
   // Holding / funding fee fields (% of notional per period)
   fundingFee1hPct?: number;
   fundingFee24hPct?: number;
-  // Directional holding fees (Avantis, Ostium)
+  // Directional holding fees (Veranta, Ostium)
   fundingFee1hLongPct?: number;
   fundingFee1hShortPct?: number;
   fundingFee24hLongPct?: number;
