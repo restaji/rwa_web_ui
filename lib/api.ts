@@ -7,8 +7,9 @@
 
 import { Asset, ASSETS, Venue, categorizeAsset } from "./mockVenues";
 
-const API_BASE =
-    process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz";
+const API_BASE = (
+    process.env.NEXT_PUBLIC_API_URL || "https://api.realworldperps.xyz"
+).replace(/\/+$/, "");
 
 const EXCHANGE_META: Record<string, { name: string; logo: string }> = {
     hyperliquid: { name: "Hyperliquid", logo: "/logos/hyperliquid.png" },
@@ -95,9 +96,15 @@ interface CompareAPIResponse {
 /* ------------------------------------------------------------------ */
 /*  Transform one exchange result into a Venue                        */
 /* ------------------------------------------------------------------ */
+// KRX-listed assets come back as numeric codes ("005930/KRW"); show the ticker instead
+function displaySymbol(symbol: string | undefined, assetKey: string): string | undefined {
+    return symbol?.replace(/^\d{6}(?=\/|$)/, assetKey);
+}
+
 function toVenue(
     exchangeKey: string,
     data: ExchangeResult,
+    assetKey: string,
     hasInsufficientLiquidity: boolean = false
 ): Venue {
     const meta = EXCHANGE_META[exchangeKey] ?? {
@@ -120,7 +127,7 @@ function toVenue(
         updatedAt: data.timestamp
             ? new Date(data.timestamp * 1000).toISOString()
             : new Date().toISOString(),
-        symbol: data.symbol,
+        symbol: displaySymbol(data.symbol, assetKey),
         hasInsufficientLiquidity,
         availableLiquidityUsd: data.filled_usd,
         maxBuyUsd: data.buy?.filled_usd,
@@ -138,17 +145,16 @@ function toAsset(raw: BackendAsset): Asset {
     const known = ASSET_BY_ID.get(raw.key);
     if (known) return known;
 
-    let pair = raw.key;
-    if (raw.name) {
-        pair = raw.name;
-    } else if (raw.symbol) {
-        pair = `${raw.symbol}/USD`;
-    }
+    const ticker = raw.symbol || raw.key;
+    // Backend `name` is either a pair ("LLY/USD") or a display name ("Samsung Electronics (005930)")
+    const nameIsPair = !!raw.name && raw.name.includes("/");
+
+    const displayName = raw.name?.replace(/\s*\(\d+\)\s*$/, "");
 
     return {
         id: raw.key,
-        symbol: pair,
-        name: raw.symbol || raw.key,
+        symbol: nameIsPair ? raw.name! : `${ticker}/USD`,
+        name: !nameIsPair && displayName ? displayName : ticker,
         category: categorizeAsset(raw.key),
     };
 }
@@ -218,7 +224,7 @@ export async function fetchComparison(
                 exData.executed === "false" ||
                 exData.executed === "PARTIAL";
 
-            venues.push(toVenue(key, exData, hasInsufficientLiquidity));
+            venues.push(toVenue(key, exData, json.symbol_key || assetKey, hasInsufficientLiquidity));
         }
     }
 
